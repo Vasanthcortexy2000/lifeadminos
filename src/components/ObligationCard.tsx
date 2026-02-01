@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Obligation, ObligationStatus, ObligationUpdate, RiskLevel } from '@/types/obligation';
 import { RiskBadge } from './RiskBadge';
 import { DueDateBadge } from './DueDateBadge';
 import { ConfidenceBadge } from './ConfidenceBadge';
+import { DomainBadge, DomainSelector, LifeDomain } from './LifeDomain';
+import { RescheduleDialog } from './RescheduleDialog';
+import { EvidenceAttachment } from './EvidenceAttachment';
+import { ShareObligation } from './ShareObligation';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { getDueDateStatus } from '@/lib/dateUtils';
@@ -27,7 +31,24 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+
+interface Evidence {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_type: string | null;
+  uploaded_at: string;
+}
+
+interface Share {
+  id: string;
+  share_token: string;
+  created_at: string;
+  expires_at: string | null;
+  revoked: boolean;
+}
 
 interface ObligationCardProps {
   obligation: Obligation;
@@ -79,14 +100,48 @@ export function ObligationCard({
   const [editRiskLevel, setEditRiskLevel] = useState(obligation.riskLevel);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
+  // Reschedule dialog state
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState(false);
+
+  // Evidence and sharing state
+  const [evidence, setEvidence] = useState<Evidence[]>([]);
+  const [shares, setShares] = useState<Share[]>([]);
+  const { user } = useAuth();
+
   const hasSteps = localSteps.length > 0;
   const isCompleted = obligation.status === 'completed';
   const dueDateStatus = getDueDateStatus(obligation.deadline);
+  const isOverdue = dueDateStatus === 'overdue' && !isCompleted;
 
   // Sync local steps with prop changes
   useEffect(() => {
     setLocalSteps(obligation.steps || []);
   }, [obligation.steps]);
+
+  // Fetch evidence and shares
+  const fetchEvidenceAndShares = useCallback(async () => {
+    if (!user) return;
+
+    const [evidenceResult, sharesResult] = await Promise.all([
+      supabase
+        .from('obligation_evidence')
+        .select('*')
+        .eq('obligation_id', obligation.id)
+        .eq('user_id', user.id),
+      supabase
+        .from('obligation_shares')
+        .select('*')
+        .eq('obligation_id', obligation.id)
+        .eq('user_id', user.id),
+    ]);
+
+    if (evidenceResult.data) setEvidence(evidenceResult.data);
+    if (sharesResult.data) setShares(sharesResult.data);
+  }, [user, obligation.id]);
+
+  useEffect(() => {
+    fetchEvidenceAndShares();
+  }, [fetchEvidenceAndShares]);
 
   const handleStatusChange = async (value: string) => {
     if (onStatusChange) {
@@ -233,6 +288,21 @@ export function ObligationCard({
     }
   };
 
+  // Handle reschedule
+  const handleReschedule = async (newDate: Date) => {
+    if (!onUpdate) return;
+    await onUpdate(obligation.id, { deadline: newDate });
+    setShowSaved(true);
+    setTimeout(() => setShowSaved(false), 2000);
+  };
+
+  const handleCompleteFromDialog = async () => {
+    if (!onStatusChange) return;
+    await onStatusChange(obligation.id, 'completed');
+    setShowSaved(true);
+    setTimeout(() => setShowSaved(false), 2000);
+  };
+
   // Completed card styling
   const cardClasses = cn(
     'card-calm p-5 transition-all duration-300',
@@ -320,6 +390,9 @@ export function ObligationCard({
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <RiskBadge level={obligation.riskLevel} />
             <DueDateBadge deadline={obligation.deadline} />
+            {obligation.domain && obligation.domain !== 'general' && (
+              <DomainBadge domain={obligation.domain} />
+            )}
             {obligation.confidence !== undefined && (
               <ConfidenceBadge confidence={obligation.confidence} />
             )}
@@ -375,6 +448,29 @@ export function ObligationCard({
               )}
             </div>
           )}
+
+          {/* Evidence, Share, and Overdue actions */}
+          <div className="flex flex-wrap items-center gap-4 mb-3">
+            <EvidenceAttachment 
+              obligationId={obligation.id}
+              evidence={evidence}
+              onEvidenceChange={fetchEvidenceAndShares}
+            />
+            <ShareObligation 
+              obligationId={obligation.id}
+              obligationTitle={obligation.title}
+              existingShares={shares}
+              onShareChange={fetchEvidenceAndShares}
+            />
+            {isOverdue && (
+              <button
+                onClick={() => setShowRescheduleDialog(true)}
+                className="text-xs text-[hsl(var(--risk-high))] hover:underline"
+              >
+                This may need attention
+              </button>
+            )}
+          </div>
 
           {/* Steps section */}
           {hasSteps ? (
@@ -537,6 +633,15 @@ export function ObligationCard({
           </div>
         </div>
       </div>
+
+      {/* Reschedule Dialog */}
+      <RescheduleDialog
+        obligation={obligation}
+        open={showRescheduleDialog}
+        onOpenChange={setShowRescheduleDialog}
+        onComplete={handleCompleteFromDialog}
+        onReschedule={handleReschedule}
+      />
     </div>
   );
 }

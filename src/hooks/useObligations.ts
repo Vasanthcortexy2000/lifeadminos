@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Obligation, ObligationStatus, RiskLevel, ObligationType, ObligationFrequency, ObligationUpdate } from '@/types/obligation';
+import { Obligation, ObligationStatus, RiskLevel, ObligationType, ObligationFrequency, ObligationUpdate, LifeDomain } from '@/types/obligation';
 import { useToast } from '@/hooks/use-toast';
 import { useReminders } from '@/hooks/useReminders';
 import type { Json } from '@/integrations/supabase/types';
@@ -22,6 +22,7 @@ interface DbObligation {
   lead_time: string | null;
   steps: Json;
   confidence: number | null;
+  domain: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -49,6 +50,7 @@ function mapDbToObligation(db: DbObligation): Obligation {
     leadTime: db.lead_time || undefined,
     steps: parseSteps(db.steps),
     confidence: db.confidence ?? undefined,
+    domain: (db.domain as LifeDomain) || 'general',
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
   };

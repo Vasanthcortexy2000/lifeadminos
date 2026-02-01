@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { DocumentUpload } from '@/components/DocumentUpload';
@@ -6,6 +6,10 @@ import { GroupedTimeline } from '@/components/GroupedTimeline';
 import { WeeklySummary } from '@/components/WeeklySummary';
 import { NudgesPanel } from '@/components/NudgesPanel';
 import { UrgentNudgeBanner } from '@/components/UrgentNudgeBanner';
+import { ReminderBanner } from '@/components/ReminderBanner';
+import { TodayFocus } from '@/components/TodayFocus';
+import { ReminderPreferencesDialog } from '@/components/ReminderPreferencesDialog';
+import { DomainFilter, LifeDomain, LIFE_DOMAINS } from '@/components/LifeDomain';
 import { useAuth } from '@/contexts/AuthContext';
 import { useObligations } from '@/hooks/useObligations';
 import { useNudges } from '@/hooks/useNudges';
@@ -14,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [selectedDomains, setSelectedDomains] = useState<LifeDomain[]>([]);
   const { 
     obligations, 
     loading: obligationsLoading, 
@@ -23,6 +28,11 @@ const Index = () => {
     refetch 
   } = useObligations();
   const { nudges, dismissNudge } = useNudges();
+
+  // Filter obligations by domain
+  const filteredObligations = selectedDomains.length > 0
+    ? obligations.filter(ob => selectedDomains.includes(ob.domain || 'general'))
+    : obligations;
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -62,20 +72,44 @@ const Index = () => {
     return null;
   }
 
+  const scrollToTimeline = () => {
+    const timelineSection = document.querySelector('[data-section="timeline"]');
+    if (timelineSection) {
+      timelineSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
         {/* Welcome Message */}
-        <div className="mb-8 animate-fade-in">
-          <h2 className="text-2xl font-semibold text-foreground mb-2">
-            I have your back.
-          </h2>
-          <p className="text-muted-foreground">
-            You don't need to remember everything. I will.
-          </p>
+        <div className="mb-6 animate-fade-in flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-foreground mb-2">
+              I have your back.
+            </h2>
+            <p className="text-muted-foreground">
+              You don't need to remember everything. I will.
+            </p>
+          </div>
+          <ReminderPreferencesDialog />
         </div>
+
+        {/* Reminder Banner - calm, dismissible */}
+        {!obligationsLoading && obligations.length > 0 && (
+          <ReminderBanner 
+            obligations={obligations} 
+            onScrollToTimeline={scrollToTimeline}
+            className="mb-6"
+          />
+        )}
+
+        {/* Today's Focus - what to do today */}
+        {!obligationsLoading && (
+          <TodayFocus obligations={obligations} className="mb-8 animate-fade-in" />
+        )}
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
@@ -95,8 +129,25 @@ const Index = () => {
               <DocumentUpload onUpload={handleUpload} onObligationsSaved={refetch} />
             </section>
 
+            {/* Domain Filter */}
+            {!obligationsLoading && obligations.length > 0 && (
+              <section className="animate-slide-up" style={{ animationDelay: '150ms' }}>
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                  Filter by area
+                </h3>
+                <DomainFilter 
+                  selectedDomains={selectedDomains} 
+                  onChange={setSelectedDomains} 
+                />
+              </section>
+            )}
+
             {/* Timeline */}
-            <section className="animate-slide-up" style={{ animationDelay: '200ms' }}>
+            <section 
+              className="animate-slide-up" 
+              style={{ animationDelay: '200ms' }}
+              data-section="timeline"
+            >
               {obligationsLoading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-6 w-32" />
@@ -105,7 +156,7 @@ const Index = () => {
                 </div>
               ) : (
                 <GroupedTimeline
-                  obligations={obligations}
+                  obligations={filteredObligations}
                   onStatusChange={updateStatus}
                   onUpdate={updateObligation}
                   onDelete={deleteObligation}
