@@ -36,6 +36,17 @@ RULES FOR RISK LEVELS:
 - "medium": Important administrative tasks with moderate consequences (late fees, service interruption, missed opportunities)
 - "low": Informational items, optional tasks, or items with minimal consequences
 
+RULES FOR DOMAIN CLASSIFICATION:
+Classify each obligation into ONE of these life domains:
+- "visa": Immigration, visas, passports, work permits, citizenship, travel documents
+- "work": Employment, job, salary, contracts, shifts, roster, workplace compliance
+- "health": Medical appointments, medicare, vaccinations, health insurance, doctor visits
+- "finance": Tax, banking, payments, loans, rent, bills, superannuation
+- "study": University, school, courses, exams, assignments, education
+- "housing": Lease agreements, rental, property, accommodation, moving, landlord matters
+- "legal": Court, lawyer, licenses, registrations, compliance, police checks
+- "general": Everything else that doesn't fit above
+
 CRITICAL RULES FOR STEPS:
 - ALWAYS generate at least 3 concrete, actionable steps for every obligation
 - Steps must be short, plain-English, and immediately actionable
@@ -57,6 +68,7 @@ OUTPUT REQUIREMENTS:
 - Each consequence must be exactly 1 sentence describing what happens if missed
 - Steps MUST contain 3-5 simple, actionable items (NEVER empty)
 - Confidence should reflect how certain you are about this obligation (0.0-1.0)
+- Domain should be one of: visa, work, health, finance, study, housing, legal, general
 - If no clear deadline exists, set due_date to null
 
 Be thorough but precise. Only extract genuine obligations that require action.`;
@@ -122,9 +134,14 @@ Be thorough but precise. Only extract genuine obligations that require action.`;
                           minimum: 0,
                           maximum: 1,
                           description: 'How confident you are about this obligation (0.0-1.0)'
+                        },
+                        domain: {
+                          type: 'string',
+                          enum: ['visa', 'work', 'health', 'finance', 'study', 'housing', 'legal', 'general'],
+                          description: 'Life domain category for this obligation'
                         }
                       },
-                      required: ['title', 'summary', 'risk_level', 'consequence', 'steps', 'confidence']
+                      required: ['title', 'summary', 'risk_level', 'consequence', 'steps', 'confidence', 'domain']
                     }
                   }
                 },
@@ -194,6 +211,29 @@ Be thorough but precise. Only extract genuine obligations that require action.`;
       return ['Review the requirements carefully', 'Gather any required documents or information', 'Complete the task and confirm'];
     };
 
+    // Fallback domain detection
+    const detectDomain = (title: string, summary: string): string => {
+      const text = `${title} ${summary}`.toLowerCase();
+      
+      const visaKeywords = ['visa', 'passport', 'immigration', 'bridging', 'migration', 'citizenship', 'travel document'];
+      const workKeywords = ['work', 'job', 'employment', 'salary', 'payroll', 'contract', 'shift', 'roster'];
+      const healthKeywords = ['health', 'medical', 'doctor', 'hospital', 'medicare', 'insurance', 'vaccination', 'appointment'];
+      const financeKeywords = ['tax', 'bank', 'payment', 'loan', 'rent', 'bill', 'finance', 'money', 'superannuation'];
+      const studyKeywords = ['study', 'university', 'school', 'course', 'enrol', 'exam', 'assignment', 'education'];
+      const housingKeywords = ['lease', 'rental', 'property', 'accommodation', 'moving', 'landlord', 'tenant'];
+      const legalKeywords = ['legal', 'court', 'lawyer', 'police', 'license', 'registration', 'compliance'];
+
+      if (visaKeywords.some(k => text.includes(k))) return 'visa';
+      if (workKeywords.some(k => text.includes(k))) return 'work';
+      if (healthKeywords.some(k => text.includes(k))) return 'health';
+      if (financeKeywords.some(k => text.includes(k))) return 'finance';
+      if (studyKeywords.some(k => text.includes(k))) return 'study';
+      if (housingKeywords.some(k => text.includes(k))) return 'housing';
+      if (legalKeywords.some(k => text.includes(k))) return 'legal';
+      
+      return 'general';
+    };
+
     // Validate and clean the obligations, ensuring at least 3 steps
     const validatedObligations = (result.obligations || []).map((ob: any) => {
       const title = String(ob.title || '').slice(0, 60);
@@ -212,6 +252,10 @@ Be thorough but precise. Only extract genuine obligations that require action.`;
         }
       }
 
+      // Ensure domain is valid
+      const validDomains = ['visa', 'work', 'health', 'finance', 'study', 'housing', 'legal', 'general'];
+      let domain = validDomains.includes(ob.domain) ? ob.domain : detectDomain(title, summary);
+
       return {
         title,
         summary,
@@ -219,7 +263,8 @@ Be thorough but precise. Only extract genuine obligations that require action.`;
         risk_level: ['low', 'medium', 'high'].includes(ob.risk_level) ? ob.risk_level : 'medium',
         consequence: String(ob.consequence || ''),
         steps,
-        confidence: typeof ob.confidence === 'number' ? Math.min(1, Math.max(0, ob.confidence)) : 0.5
+        confidence: typeof ob.confidence === 'number' ? Math.min(1, Math.max(0, ob.confidence)) : 0.5,
+        domain
       };
     });
 
