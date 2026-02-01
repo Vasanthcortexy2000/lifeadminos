@@ -189,6 +189,7 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
           consequence: obligation.consequence,
           steps: obligation.steps || [],
           confidence: obligation.confidence || null,
+          domain: obligation.domain || 'general',
         })
         .select('id')
         .single();
