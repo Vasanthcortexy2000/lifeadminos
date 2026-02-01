@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { DocumentUpload } from '@/components/DocumentUpload';
 import { GroupedTimeline } from '@/components/GroupedTimeline';
+import { WeeklySummary } from '@/components/WeeklySummary';
 import { NudgesPanel } from '@/components/NudgesPanel';
+import { UrgentNudgeBanner } from '@/components/UrgentNudgeBanner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useObligations } from '@/hooks/useObligations';
 import { useNudges } from '@/hooks/useNudges';
@@ -12,7 +14,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { obligations, loading: obligationsLoading, updateStatus, deleteObligation, refetch } = useObligations();
+  const { 
+    obligations, 
+    loading: obligationsLoading, 
+    updateStatus, 
+    updateObligation,
+    deleteObligation, 
+    refetch 
+  } = useObligations();
   const { nudges, dismissNudge } = useNudges();
 
   // Redirect to auth if not logged in
@@ -71,6 +80,13 @@ const Index = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Weekly Summary - high value, calming overview */}
+            {!obligationsLoading && obligations.length > 0 && (
+              <section className="animate-slide-up">
+                <WeeklySummary obligations={obligations} />
+              </section>
+            )}
+
             {/* Document Upload */}
             <section className="animate-slide-up" style={{ animationDelay: '100ms' }}>
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">
@@ -91,6 +107,7 @@ const Index = () => {
                 <GroupedTimeline
                   obligations={obligations}
                   onStatusChange={updateStatus}
+                  onUpdate={updateObligation}
                   onDelete={deleteObligation}
                 />
               )}
@@ -99,6 +116,11 @@ const Index = () => {
 
           {/* Sidebar */}
           <aside className="space-y-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
+            {/* Urgent nudge banners - in-app, dismissible */}
+            {!obligationsLoading && (
+              <UrgentNudgeBanner obligations={obligations} />
+            )}
+
             <NudgesPanel
               nudges={nudges}
               onDismiss={dismissNudge}
@@ -107,7 +129,7 @@ const Index = () => {
             {/* Trust Message */}
             <div className="p-5 bg-secondary/50 rounded-xl">
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Your documents are processed locally. We do not sell or train on your data. You can delete everything at any time.
+                Your documents are processed securely. We do not sell or train on your data. You can delete everything at any time.
               </p>
             </div>
           </aside>

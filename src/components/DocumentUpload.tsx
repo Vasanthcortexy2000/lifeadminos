@@ -132,6 +132,7 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
         frequency: 'one-time',
         consequence: obligation.consequence,
         steps: obligation.steps || [],
+        confidence: obligation.confidence || null,
       });
 
       if (insertError) {

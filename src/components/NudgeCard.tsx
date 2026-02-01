@@ -9,9 +9,9 @@ interface NudgeCardProps {
 }
 
 const toneStyles = {
-  gentle: 'border-l-status-completed bg-risk-low-bg/50',
-  firm: 'border-l-status-in-progress bg-secondary',
-  urgent: 'border-l-risk-high bg-risk-high-bg/50',
+  gentle: 'border-l-[hsl(var(--status-completed))] bg-[hsl(var(--risk-low-bg))]/50',
+  firm: 'border-l-[hsl(var(--status-in-progress))] bg-secondary',
+  urgent: 'border-l-[hsl(var(--risk-high))] bg-[hsl(var(--risk-high-bg))]/50',
 };
 
 export function NudgeCard({ nudge, onDismiss, className }: NudgeCardProps) {

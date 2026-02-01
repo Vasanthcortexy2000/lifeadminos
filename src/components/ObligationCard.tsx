@@ -1,9 +1,15 @@
-import { useState } from 'react';
-import { Obligation, ObligationStatus } from '@/types/obligation';
+import { useState, useEffect } from 'react';
+import { Obligation, ObligationStatus, ObligationUpdate, RiskLevel } from '@/types/obligation';
 import { RiskBadge } from './RiskBadge';
+import { DueDateBadge } from './DueDateBadge';
+import { ConfidenceBadge } from './ConfidenceBadge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { FileText, ChevronDown, ChevronUp, Check, Plus, Trash2, Loader2 } from 'lucide-react';
+import { getDueDateStatus } from '@/lib/dateUtils';
+import { 
+  FileText, ChevronDown, ChevronUp, Check, Plus, Trash2, 
+  Loader2, Pencil, X, AlertCircle, Calendar
+} from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -18,6 +24,7 @@ import {
 } from '@/components/ui/collapsible';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -26,6 +33,7 @@ interface ObligationCardProps {
   obligation: Obligation;
   onStatusChange?: (id: string, status: ObligationStatus) => Promise<void> | void;
   onDelete?: (id: string) => Promise<void>;
+  onUpdate?: (id: string, updates: ObligationUpdate) => Promise<void>;
   onStepsUpdate?: (id: string, steps: string[]) => void;
   className?: string;
 }
@@ -36,7 +44,20 @@ const statusOptions: { value: ObligationStatus; label: string }[] = [
   { value: 'completed', label: 'Completed' },
 ];
 
-export function ObligationCard({ obligation, onStatusChange, onDelete, onStepsUpdate, className }: ObligationCardProps) {
+const riskOptions: { value: RiskLevel; label: string }[] = [
+  { value: 'low', label: 'Low risk' },
+  { value: 'medium', label: 'Medium risk' },
+  { value: 'high', label: 'High risk' },
+];
+
+export function ObligationCard({ 
+  obligation, 
+  onStatusChange, 
+  onDelete, 
+  onUpdate,
+  onStepsUpdate, 
+  className 
+}: ObligationCardProps) {
   const [isStepsOpen, setIsStepsOpen] = useState(false);
   const [checkedSteps, setCheckedSteps] = useState<Set<number>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
@@ -44,10 +65,28 @@ export function ObligationCard({ obligation, onStatusChange, onDelete, onStepsUp
   const [localSteps, setLocalSteps] = useState<string[]>(obligation.steps || []);
   const [newStep, setNewStep] = useState('');
   const [isSavingSteps, setIsSavingSteps] = useState(false);
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [editValue, setEditValue] = useState('');
+  const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
+  const [editStepValue, setEditStepValue] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Inline editing state
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(obligation.title);
+  const [editDescription, setEditDescription] = useState(obligation.description);
+  const [editDeadline, setEditDeadline] = useState(
+    obligation.deadline ? format(obligation.deadline, 'yyyy-MM-dd') : ''
+  );
+  const [editRiskLevel, setEditRiskLevel] = useState(obligation.riskLevel);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+
   const hasSteps = localSteps.length > 0;
+  const isCompleted = obligation.status === 'completed';
+  const dueDateStatus = getDueDateStatus(obligation.deadline);
+
+  // Sync local steps with prop changes
+  useEffect(() => {
+    setLocalSteps(obligation.steps || []);
+  }, [obligation.steps]);
 
   const handleStatusChange = async (value: string) => {
     if (onStatusChange) {
@@ -117,7 +156,6 @@ export function ObligationCard({ obligation, onStatusChange, onDelete, onStepsUp
     setCheckedSteps(prev => {
       const next = new Set(prev);
       next.delete(index);
-      // Adjust indices for items after the removed one
       const adjusted = new Set<number>();
       next.forEach(i => {
         if (i > index) adjusted.add(i - 1);
@@ -128,29 +166,30 @@ export function ObligationCard({ obligation, onStatusChange, onDelete, onStepsUp
     await saveStepsToDb(updatedSteps);
   };
 
-  const handleStartEdit = (index: number) => {
-    setEditingIndex(index);
-    setEditValue(localSteps[index]);
+  const handleStartStepEdit = (index: number) => {
+    setEditingStepIndex(index);
+    setEditStepValue(localSteps[index]);
   };
 
-  const handleSaveEdit = async () => {
-    if (editingIndex === null) return;
-    if (!editValue.trim()) {
-      handleRemoveStep(editingIndex);
+  const handleSaveStepEdit = async () => {
+    if (editingStepIndex === null) return;
+    if (!editStepValue.trim()) {
+      handleRemoveStep(editingStepIndex);
     } else {
       const updatedSteps = [...localSteps];
-      updatedSteps[editingIndex] = editValue.trim();
+      updatedSteps[editingStepIndex] = editStepValue.trim();
       setLocalSteps(updatedSteps);
       await saveStepsToDb(updatedSteps);
     }
-    setEditingIndex(null);
-    setEditValue('');
+    setEditingStepIndex(null);
+    setEditStepValue('');
   };
 
-  const handleCancelEdit = () => {
-    setEditingIndex(null);
-    setEditValue('');
+  const handleCancelStepEdit = () => {
+    setEditingStepIndex(null);
+    setEditStepValue('');
   };
+
   const handleDelete = async () => {
     if (!onDelete) return;
     setIsDeleting(true);
@@ -161,52 +200,183 @@ export function ObligationCard({ obligation, onStatusChange, onDelete, onStepsUp
     }
   };
 
-  const formatDueDate = () => {
-    if (!obligation.deadline) {
-      return 'No due date found';
-    }
-    return format(obligation.deadline, 'MMM d, yyyy');
+  const handleStartEdit = () => {
+    setEditTitle(obligation.title);
+    setEditDescription(obligation.description);
+    setEditDeadline(obligation.deadline ? format(obligation.deadline, 'yyyy-MM-dd') : '');
+    setEditRiskLevel(obligation.riskLevel);
+    setIsEditing(true);
   };
 
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!onUpdate) return;
+    
+    setIsSavingEdit(true);
+    try {
+      await onUpdate(obligation.id, {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        deadline: editDeadline ? new Date(editDeadline) : null,
+        riskLevel: editRiskLevel,
+      });
+      setIsEditing(false);
+      setShowSaved(true);
+      setTimeout(() => setShowSaved(false), 2000);
+    } catch {
+      // Error handled in hook
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  // Completed card styling
+  const cardClasses = cn(
+    'card-calm p-5 transition-all duration-300',
+    isCompleted ? 'opacity-60' : 'hover:shadow-elevated',
+    dueDateStatus === 'overdue' && !isCompleted && 'border-l-4 border-l-[hsl(var(--risk-high))]',
+    dueDateStatus === 'due-soon' && !isCompleted && 'border-l-4 border-l-[hsl(var(--risk-medium))]',
+    className
+  );
+
+  // Editing mode
+  if (isEditing) {
+    return (
+      <div className={cardClasses}>
+        <div className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Title</label>
+            <Input
+              value={editTitle}
+              onChange={e => setEditTitle(e.target.value)}
+              placeholder="Obligation title"
+              className="text-base"
+            />
+          </div>
+          
+          <div>
+            <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Summary</label>
+            <Textarea
+              value={editDescription}
+              onChange={e => setEditDescription(e.target.value)}
+              placeholder="What is this obligation about?"
+              rows={2}
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Due date</label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="date"
+                  value={editDeadline}
+                  onChange={e => setEditDeadline(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Risk level</label>
+              <Select value={editRiskLevel} onValueChange={v => setEditRiskLevel(v as RiskLevel)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {riskOptions.map(opt => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 pt-2">
+            <Button onClick={handleSaveEdit} disabled={isSavingEdit || !editTitle.trim()}>
+              {isSavingEdit ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              Save changes
+            </Button>
+            <Button variant="ghost" onClick={handleCancelEdit}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className={cn(
-        'card-calm p-5 transition-all duration-300 hover:shadow-elevated',
-        className
-      )}
-    >
+    <div className={cardClasses}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          {/* Risk badge */}
-          <div className="flex items-center gap-3 mb-2">
+          {/* Top badges row */}
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             <RiskBadge level={obligation.riskLevel} />
+            <DueDateBadge deadline={obligation.deadline} />
+            {obligation.confidence !== undefined && (
+              <ConfidenceBadge confidence={obligation.confidence} />
+            )}
           </div>
 
           {/* Title */}
-          <h3 className="text-lg font-semibold mb-1 text-foreground">
+          <h3 className={cn(
+            'text-lg font-semibold mb-1',
+            isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'
+          )}>
             {obligation.title}
           </h3>
 
           {/* Description/Summary */}
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+          <p className={cn(
+            'text-sm mb-3 line-clamp-2',
+            isCompleted ? 'text-muted-foreground/70' : 'text-muted-foreground'
+          )}>
             {obligation.description}
           </p>
 
-          {/* Metadata row */}
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-            {obligation.sourceDocument && (
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <FileText className="w-4 h-4" />
-                <span>{obligation.sourceDocument}</span>
-              </div>
-            )}
-
-            <div className="text-muted-foreground">
-              <span className="font-medium">Due:</span> {formatDueDate()}
+          {/* Consequence - prominently displayed for high-risk items */}
+          {obligation.consequence && (
+            <div className={cn(
+              'flex items-start gap-2 p-3 rounded-lg mb-3 text-sm',
+              obligation.riskLevel === 'high' && !isCompleted
+                ? 'bg-[hsl(var(--risk-high-bg))]'
+                : 'bg-secondary'
+            )}>
+              <AlertCircle className={cn(
+                'w-4 h-4 flex-shrink-0 mt-0.5',
+                obligation.riskLevel === 'high' && !isCompleted
+                  ? 'text-[hsl(var(--risk-high))]'
+                  : 'text-muted-foreground'
+              )} />
+              <span className={cn(
+                isCompleted ? 'text-muted-foreground/70' : 'text-foreground'
+              )}>
+                {obligation.consequence}
+              </span>
             </div>
-          </div>
+          )}
 
-          {/* Steps section - only show if has steps */}
+          {/* Source document */}
+          {obligation.sourceDocument && obligation.sourceDocument !== 'Unknown' && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+              <FileText className="w-3.5 h-3.5" />
+              <span>From: {obligation.sourceDocument}</span>
+              {obligation.createdAt && (
+                <span className="text-muted-foreground/60">
+                  · Added {format(obligation.createdAt, 'MMM d, yyyy')}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Steps section */}
           {hasSteps ? (
             <Collapsible open={isStepsOpen} onOpenChange={setIsStepsOpen} className="mt-4">
               <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
@@ -233,19 +403,19 @@ export function ObligationCard({ obligation, onStatusChange, onDelete, onStepsUp
                         onCheckedChange={() => toggleStep(index)}
                         className="mt-0.5"
                       />
-                      {editingIndex === index ? (
+                      {editingStepIndex === index ? (
                         <div className="flex-1 flex gap-2">
                           <Input
-                            value={editValue}
-                            onChange={e => setEditValue(e.target.value)}
+                            value={editStepValue}
+                            onChange={e => setEditStepValue(e.target.value)}
                             onKeyDown={e => {
-                              if (e.key === 'Enter') handleSaveEdit();
-                              if (e.key === 'Escape') handleCancelEdit();
+                              if (e.key === 'Enter') handleSaveStepEdit();
+                              if (e.key === 'Escape') handleCancelStepEdit();
                             }}
                             className="h-7 text-sm"
                             autoFocus
                           />
-                          <Button size="sm" variant="ghost" onClick={handleSaveEdit} className="h-7 px-2">
+                          <Button size="sm" variant="ghost" onClick={handleSaveStepEdit} className="h-7 px-2">
                             <Check className="w-3 h-3" />
                           </Button>
                         </div>
@@ -255,7 +425,7 @@ export function ObligationCard({ obligation, onStatusChange, onDelete, onStepsUp
                             htmlFor={`step-${obligation.id}-${index}`}
                             onClick={e => {
                               e.preventDefault();
-                              handleStartEdit(index);
+                              handleStartStepEdit(index);
                             }}
                             className={cn(
                               'flex-1 text-sm cursor-pointer transition-colors',
@@ -309,14 +479,17 @@ export function ObligationCard({ obligation, onStatusChange, onDelete, onStepsUp
           )}
         </div>
 
-        {/* Status dropdown with save indicator */}
-        <div className="flex-shrink-0 flex flex-col items-end gap-1">
+        {/* Right column: status, edit, delete */}
+        <div className="flex-shrink-0 flex flex-col items-end gap-2">
           <Select 
             value={obligation.status} 
             onValueChange={handleStatusChange}
             disabled={isSaving}
           >
-            <SelectTrigger className="w-[140px] bg-secondary border-0">
+            <SelectTrigger className={cn(
+              'w-[140px] border-0',
+              isCompleted ? 'bg-[hsl(var(--status-completed))]/10' : 'bg-secondary'
+            )}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-popover z-50">
@@ -337,19 +510,31 @@ export function ObligationCard({ obligation, onStatusChange, onDelete, onStepsUp
             <span className="text-muted-foreground">Saved</span>
           </div>
 
-          {/* Delete button */}
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="p-1.5 text-muted-foreground hover:text-destructive transition-colors rounded-md hover:bg-destructive/10"
-            title="Delete obligation"
-          >
-            {isDeleting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Trash2 className="w-4 h-4" />
-            )}
-          </button>
+          {/* Action buttons */}
+          <div className="flex items-center gap-1 mt-1">
+            {/* Edit button */}
+            <button
+              onClick={handleStartEdit}
+              className="p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-secondary"
+              title="Edit obligation"
+            >
+              <Pencil className="w-4 h-4" />
+            </button>
+
+            {/* Delete button */}
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="p-1.5 text-muted-foreground hover:text-destructive transition-colors rounded-md hover:bg-destructive/10"
+              title="Delete obligation"
+            >
+              {isDeleting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Trash2 className="w-4 h-4" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

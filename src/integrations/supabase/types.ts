@@ -90,6 +90,7 @@ export type Database = {
       }
       obligations: {
         Row: {
+          confidence: number | null
           consequence: string | null
           created_at: string
           deadline: string | null
@@ -108,6 +109,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          confidence?: number | null
           consequence?: string | null
           created_at?: string
           deadline?: string | null
@@ -126,6 +128,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          confidence?: number | null
           consequence?: string | null
           created_at?: string
           deadline?: string | null
