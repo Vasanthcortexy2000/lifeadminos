@@ -2,9 +2,8 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { DocumentUpload } from '@/components/DocumentUpload';
-import { TimelineSection } from '@/components/TimelineSection';
+import { GroupedTimeline } from '@/components/GroupedTimeline';
 import { NudgesPanel } from '@/components/NudgesPanel';
-import { EmptyState } from '@/components/EmptyState';
 import { useAuth } from '@/contexts/AuthContext';
 import { useObligations } from '@/hooks/useObligations';
 import { useNudges } from '@/hooks/useNudges';
@@ -13,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { obligations, loading: obligationsLoading, updateStatus } = useObligations();
+  const { obligations, loading: obligationsLoading, updateStatus, refetch } = useObligations();
   const { nudges, dismissNudge } = useNudges();
 
   // Redirect to auth if not logged in
@@ -24,7 +23,6 @@ const Index = () => {
   }, [user, authLoading, navigate]);
 
   const handleUpload = (files: File[]) => {
-    // In production, this would process documents and extract obligations
     console.log('Files uploaded:', files);
   };
 
@@ -78,7 +76,7 @@ const Index = () => {
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">
                 Add Documents
               </h3>
-              <DocumentUpload onUpload={handleUpload} />
+              <DocumentUpload onUpload={handleUpload} onObligationsSaved={refetch} />
             </section>
 
             {/* Timeline */}
@@ -89,13 +87,8 @@ const Index = () => {
                   <Skeleton className="h-24 w-full" />
                   <Skeleton className="h-24 w-full" />
                 </div>
-              ) : obligations.length === 0 ? (
-                <EmptyState
-                  title="No obligations yet"
-                  description="Upload a document to get started. I'll extract your deadlines and keep track of them for you."
-                />
               ) : (
-                <TimelineSection
+                <GroupedTimeline
                   obligations={obligations}
                   onStatusChange={updateStatus}
                 />

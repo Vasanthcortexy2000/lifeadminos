@@ -89,31 +89,30 @@ export function useObligations() {
     fetchObligations();
   }, [fetchObligations]);
 
-  const updateStatus = async (id: string, status: ObligationStatus) => {
+  const updateStatus = async (id: string, status: ObligationStatus): Promise<void> => {
     if (!user) return;
 
-    try {
-      const { error } = await supabase
-        .from('obligations')
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .eq('user_id', user.id);
+    const { error } = await supabase
+      .from('obligations')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', user.id);
 
-      if (error) throw error;
-
-      setObligations(prev =>
-        prev.map(ob =>
-          ob.id === id ? { ...ob, status, updatedAt: new Date() } : ob
-        )
-      );
-    } catch (error) {
+    if (error) {
       console.error('Error updating obligation status:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to update status.',
+        title: "Couldn't save — try again.",
+        description: 'There was an error updating the status.',
         variant: 'destructive',
       });
+      throw error;
     }
+
+    setObligations(prev =>
+      prev.map(ob =>
+        ob.id === id ? { ...ob, status, updatedAt: new Date() } : ob
+      )
+    );
   };
 
   const addObligation = async (obligation: Omit<Obligation, 'id' | 'createdAt' | 'updatedAt'>) => {

@@ -29,20 +29,23 @@ serve(async (req) => {
     console.log('Analyzing document:', documentName);
     console.log('Text length:', rawText.length);
 
-    const systemPrompt = `You are an expert document analyst specializing in identifying obligations, deadlines, and required actions from legal, administrative, and personal documents.
+    const systemPrompt = `You are an expert document analyst. Extract obligations, deadlines, and required actions from documents.
 
-Your task is to carefully read the provided document text and extract any obligations, deadlines, or required actions.
+RULES FOR RISK LEVELS:
+- "high": Only use when missing it has serious consequences (legal action, compliance violation, financial penalty, health appointment, visa/immigration deadline)
+- "medium": Important administrative tasks with moderate consequences (late fees, service interruption, missed opportunities)
+- "low": Informational items, optional tasks, or items with minimal consequences
 
-For each obligation found, provide:
-- title: A clear, concise title (max 60 chars)
-- summary: A brief description of what needs to be done (max 200 chars)
-- due_date: The deadline in ISO format (YYYY-MM-DD) if mentioned, or null if not specified
-- risk_level: Assess as "low", "medium", or "high" based on consequences of missing it
-- consequence: What happens if this obligation is missed (max 150 chars)
-- steps: An array of 1-5 simple action steps to complete this obligation
+OUTPUT REQUIREMENTS:
+- Return ONLY valid JSON, no markdown, no commentary
+- Each title must be max 60 characters
+- Each summary must be 1-2 sentences in plain English
+- Each consequence must be exactly 1 sentence describing what happens if missed
+- Steps should be simple, actionable items (1-5 per obligation)
+- Confidence should reflect how certain you are about this obligation (0.0-1.0)
+- If no clear deadline exists, set due_date to null
 
-Be thorough but precise. Only extract genuine obligations that require action.
-If the document contains no actionable obligations, return an empty array.`;
+Be thorough but precise. Only extract genuine obligations that require action.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -54,14 +57,14 @@ If the document contains no actionable obligations, return an empty array.`;
         model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Please analyze this document and extract all obligations:\n\n${rawText}` }
+          { role: 'user', content: `Analyze this document and extract all obligations as JSON:\n\n${rawText}` }
         ],
         tools: [
           {
             type: 'function',
             function: {
               name: 'extract_obligations',
-              description: 'Extract obligations, deadlines, and required actions from a document',
+              description: 'Extract obligations, deadlines, and required actions from a document. Returns strict JSON.',
               parameters: {
                 type: 'object',
                 properties: {
@@ -70,18 +73,44 @@ If the document contains no actionable obligations, return an empty array.`;
                     items: {
                       type: 'object',
                       properties: {
-                        title: { type: 'string', description: 'Clear, concise title for the obligation' },
-                        summary: { type: 'string', description: 'Brief description of what needs to be done' },
-                        due_date: { type: 'string', nullable: true, description: 'Deadline in YYYY-MM-DD format, or null' },
-                        risk_level: { type: 'string', enum: ['low', 'medium', 'high'], description: 'Risk level if missed' },
-                        consequence: { type: 'string', description: 'What happens if this is missed' },
+                        title: { 
+                          type: 'string', 
+                          description: 'Clear, concise title (max 60 chars)',
+                          maxLength: 60
+                        },
+                        summary: { 
+                          type: 'string', 
+                          description: '1-2 sentences describing what needs to be done' 
+                        },
+                        due_date: { 
+                          type: 'string', 
+                          nullable: true, 
+                          description: 'Deadline in YYYY-MM-DD format, or null if not specified' 
+                        },
+                        risk_level: { 
+                          type: 'string', 
+                          enum: ['low', 'medium', 'high'], 
+                          description: 'high=serious consequences, medium=moderate admin, low=optional/informational' 
+                        },
+                        consequence: { 
+                          type: 'string', 
+                          description: 'One sentence: what happens if this is missed' 
+                        },
                         steps: { 
                           type: 'array', 
                           items: { type: 'string' },
-                          description: 'Simple action steps to complete this obligation'
+                          description: '1-5 simple action steps to complete this obligation',
+                          minItems: 1,
+                          maxItems: 5
+                        },
+                        confidence: {
+                          type: 'number',
+                          minimum: 0,
+                          maximum: 1,
+                          description: 'How confident you are about this obligation (0.0-1.0)'
                         }
                       },
-                      required: ['title', 'summary', 'risk_level', 'consequence', 'steps']
+                      required: ['title', 'summary', 'risk_level', 'consequence', 'steps', 'confidence']
                     }
                   }
                 },
@@ -117,7 +146,6 @@ If the document contains no actionable obligations, return an empty array.`;
     const data = await response.json();
     console.log('AI response received');
 
-    // Extract the tool call result
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall || toolCall.function.name !== 'extract_obligations') {
       console.log('No tool call in response, returning empty obligations');
@@ -128,10 +156,22 @@ If the document contains no actionable obligations, return an empty array.`;
     }
 
     const result = JSON.parse(toolCall.function.arguments);
-    console.log('Extracted obligations:', result.obligations?.length || 0);
+    
+    // Validate and clean the obligations
+    const validatedObligations = (result.obligations || []).map((ob: any) => ({
+      title: String(ob.title || '').slice(0, 60),
+      summary: String(ob.summary || ''),
+      due_date: ob.due_date && /^\d{4}-\d{2}-\d{2}$/.test(ob.due_date) ? ob.due_date : null,
+      risk_level: ['low', 'medium', 'high'].includes(ob.risk_level) ? ob.risk_level : 'medium',
+      consequence: String(ob.consequence || ''),
+      steps: Array.isArray(ob.steps) ? ob.steps.slice(0, 5).map(String) : [],
+      confidence: typeof ob.confidence === 'number' ? Math.min(1, Math.max(0, ob.confidence)) : 0.5
+    }));
+
+    console.log('Extracted obligations:', validatedObligations.length);
 
     return new Response(
-      JSON.stringify({ success: true, obligations: result.obligations || [] }),
+      JSON.stringify({ success: true, obligations: validatedObligations }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
