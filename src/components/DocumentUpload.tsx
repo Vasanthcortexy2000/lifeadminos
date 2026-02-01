@@ -7,6 +7,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { ExtractedObligation } from '@/types/obligation';
 import { ReviewObligationsModal } from './ReviewObligationsModal';
+import { DebugPanel } from './DebugPanel';
+
+interface DebugInfo {
+  extractedText: string;
+  rawResponse: unknown;
+  documentName: string;
+}
 
 interface DocumentUploadProps {
   onUpload?: (files: File[]) => void;
@@ -22,6 +29,7 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
   const [extractedObligations, setExtractedObligations] = useState<ExtractedObligation[]>([]);
   const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
   const [currentDocumentName, setCurrentDocumentName] = useState<string>('');
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
   const { user } = useAuth();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -64,7 +72,7 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
     return `[Content from ${file.name} - ${file.type || 'unknown type'}]`;
   };
 
-  const analyzeDocument = async (rawText: string, documentName: string): Promise<ExtractedObligation[]> => {
+  const analyzeDocument = async (rawText: string, documentName: string): Promise<{ obligations: ExtractedObligation[]; rawResponse: unknown }> => {
     const { data, error } = await supabase.functions.invoke('analyze-document', {
       body: { rawText, documentName }
     });
@@ -78,7 +86,10 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
       throw new Error(data.error);
     }
 
-    return data.obligations || [];
+    return { 
+      obligations: data.obligations || [],
+      rawResponse: data
+    };
   };
 
   const saveObligations = async (
@@ -157,7 +168,14 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
       });
 
       // Analyze document
-      const obligations = await analyzeDocument(rawText, file.name);
+      const { obligations, rawResponse } = await analyzeDocument(rawText, file.name);
+
+      // Set debug info
+      setDebugInfo({
+        extractedText: rawText,
+        rawResponse,
+        documentName: file.name,
+      });
 
       if (obligations.length === 0) {
         toast({
@@ -290,6 +308,15 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
             'Process document'
           )}
         </Button>
+
+        {/* Debug Panel - shows after processing */}
+        {debugInfo && user && (
+          <DebugPanel
+            extractedText={debugInfo.extractedText}
+            rawResponse={debugInfo.rawResponse}
+            documentName={debugInfo.documentName}
+          />
+        )}
       </div>
 
       <ReviewObligationsModal
