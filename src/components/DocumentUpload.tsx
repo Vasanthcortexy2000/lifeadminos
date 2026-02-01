@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Upload, FileText, X, Loader2, ClipboardPaste, Image } from 'lucide-react';
+import { Upload, FileText, X, Loader2, ClipboardPaste } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,7 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { ExtractedObligation } from '@/types/obligation';
 import { ReviewObligationsModal } from './ReviewObligationsModal';
 import { extractTextFromPDF } from '@/lib/pdfExtractor';
-import { extractTextFromImage, isImageFile } from '@/lib/imageOCR';
+import { isImageFile } from '@/lib/imageOCR';
 
 
 interface DocumentUploadProps {
@@ -67,7 +67,21 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const extractTextFromFile = async (file: File): Promise<{ text: string; sourceType: string; ocrFailed?: boolean }> => {
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove data URL prefix to get just base64
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+    });
+  };
+
+  const extractTextFromFile = async (file: File): Promise<{ text: string; sourceType: string; ocrFailed?: boolean; isImage?: boolean; imageBase64?: string; mimeType?: string }> => {
     const fileNameLower = file.name.toLowerCase();
 
     // Handle text files
@@ -75,29 +89,17 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
       return { text: await file.text(), sourceType: 'file' };
     }
     
-    // Handle images with OCR
+    // Handle images - use vision API directly (much better than OCR for complex layouts)
     if (isImageFile(file)) {
-      try {
-        toast({
-          title: "Reading your image…",
-          description: "This may take a moment.",
-        });
-        
-        const ocrResult = await extractTextFromImage(file);
-        
-        if (!ocrResult.success || ocrResult.text.length < 50) {
-          return { 
-            text: ocrResult.text || '', 
-            sourceType: 'image',
-            ocrFailed: true 
-          };
-        }
-        
-        return { text: ocrResult.text, sourceType: 'image' };
-      } catch (error) {
-        console.error('Image OCR failed:', error);
-        return { text: '', sourceType: 'image', ocrFailed: true };
-      }
+      const imageBase64 = await fileToBase64(file);
+      const mimeType = file.type || 'image/jpeg';
+      return { 
+        text: '', 
+        sourceType: 'image',
+        isImage: true,
+        imageBase64,
+        mimeType
+      };
     }
     
     // Handle PDFs
@@ -130,6 +132,26 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
 
     if (error) {
       console.error('Error calling analyze function:', error);
+      throw error;
+    }
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    return { 
+      obligations: data.obligations || [],
+      rawResponse: data
+    };
+  };
+
+  const analyzeImageWithVision = async (imageBase64: string, documentName: string, mimeType: string): Promise<{ obligations: ExtractedObligation[]; rawResponse: unknown }> => {
+    const { data, error } = await supabase.functions.invoke('analyze-document-vision', {
+      body: { imageBase64, documentName, mimeType }
+    });
+
+    if (error) {
+      console.error('Error calling vision analyze function:', error);
       throw error;
     }
 
@@ -271,19 +293,84 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
       return;
     }
 
+    if (!user) {
+      toast({
+        title: "Please sign in to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
     const file = uploadedFiles[0];
-    const { text, sourceType, ocrFailed } = await extractTextFromFile(file);
-    
-    await processDocument(
-      text, 
-      file.name, 
-      file.type || 'application/octet-stream',
-      sourceType,
-      ocrFailed
-    );
-    
-    // Clear the processed file
-    setUploadedFiles(prev => prev.slice(1));
+
+    try {
+      const extraction = await extractTextFromFile(file);
+      
+      // For images, use vision API directly (much better for calendars, screenshots, etc.)
+      if (extraction.isImage && extraction.imageBase64) {
+        toast({
+          title: "Analysing your image…",
+          description: "I'm reading the contents carefully.",
+        });
+
+        // Save document to database first
+        const { data: docData, error: docError } = await supabase
+          .from('documents')
+          .insert({
+            user_id: user.id,
+            name: file.name,
+            type: file.type || 'image/jpeg',
+            source_type: 'image',
+            raw_text: null,
+          })
+          .select('id')
+          .single();
+
+        if (docError) {
+          throw docError;
+        }
+
+        // Analyze with vision API
+        const { obligations } = await analyzeImageWithVision(
+          extraction.imageBase64, 
+          file.name, 
+          extraction.mimeType || 'image/jpeg'
+        );
+
+        if (obligations.length === 0) {
+          toast({
+            title: "No actionable items found in this image.",
+            description: "I'll keep it on file.",
+          });
+        } else {
+          setExtractedObligations(obligations);
+          setCurrentDocumentId(docData.id);
+          setCurrentDocumentName(file.name);
+          setShowReviewModal(true);
+        }
+      } else {
+        // For text-based files, use the existing text analysis
+        await processDocument(
+          extraction.text, 
+          file.name, 
+          file.type || 'application/octet-stream',
+          extraction.sourceType,
+          extraction.ocrFailed
+        );
+      }
+    } catch (error) {
+      console.error('Error processing file:', error);
+      toast({
+        title: "Something went wrong.",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+      // Clear the processed file
+      setUploadedFiles(prev => prev.slice(1));
+    }
   };
 
   const handleProcessPastedText = async () => {
