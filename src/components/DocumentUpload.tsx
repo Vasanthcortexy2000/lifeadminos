@@ -368,7 +368,7 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
               {isProcessing ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Processing...
+                  Analysing your document…
                 </>
               ) : (
                 'Process document'
@@ -410,7 +410,7 @@ Copy the full text from your letter, contract, or email and paste it here. This 
               {isProcessing ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Processing...
+                  Analysing your document…
                 </>
               ) : (
                 'Process text'

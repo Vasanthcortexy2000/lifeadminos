@@ -132,7 +132,7 @@ export function GroupedTimeline({
         </div>
         <EmptyState
           title="Nothing here yet."
-          description="Upload a document and I'll extract any responsibilities."
+          description="Upload a document and I'll extract any responsibilities. I'll keep track so you don't have to."
         />
       </div>
     );
@@ -150,19 +150,35 @@ export function GroupedTimeline({
       {groups.map(group => {
         if (group.obligations.length === 0) return null;
 
+        const isCompleted = group.id === 'completed';
+
         return (
-          <div key={group.id} className="space-y-4">
+          <div key={group.id} className="space-y-4 relative">
+            {/* Timeline line */}
+            <div className="timeline-line" />
+            
             <div className={cn(
-              'flex items-center gap-2 text-sm font-medium',
+              'flex items-center gap-3 text-sm font-medium relative',
               group.id === 'urgent' ? 'text-[hsl(var(--risk-high))]' : 'text-muted-foreground'
             )}>
+              {/* Timeline dot for section */}
+              <div className={cn(
+                'timeline-dot',
+                group.id === 'urgent' && 'timeline-dot-high',
+                group.id === 'upcoming' && 'timeline-dot-medium',
+                group.id === 'no-due-date' && 'timeline-dot-low',
+                isCompleted && 'timeline-dot-completed'
+              )} />
               {group.icon}
               <span>
                 {group.title} ({group.obligations.length})
               </span>
             </div>
 
-            <div className="space-y-3">
+            <div className={cn(
+              'space-y-3 ml-7',
+              isCompleted && 'obligation-completed'
+            )}>
               {group.obligations.map((obligation, index) => (
                 <div
                   key={obligation.id}

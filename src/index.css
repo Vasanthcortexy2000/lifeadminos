@@ -6,110 +6,111 @@
 
 @layer base {
   :root {
-    /* Calm, trustworthy palette */
-    --background: 40 20% 98%;
-    --foreground: 220 20% 20%;
+    /* Calm, grounded palette */
+    /* Warm cream background */
+    --background: 40 25% 96%;
+    --foreground: 220 15% 22%;
 
+    /* White cards on cream */
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 20%;
+    --card-foreground: 220 15% 22%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 20%;
+    --popover-foreground: 220 15% 22%;
 
-    /* Deep slate - trustworthy, competent */
-    --primary: 220 25% 25%;
-    --primary-foreground: 40 20% 98%;
+    /* Deep muted teal - confident but calm */
+    --primary: 175 30% 35%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Warm cream */
-    --secondary: 40 30% 95%;
-    --secondary-foreground: 220 20% 25%;
+    /* Soft neutral for secondary */
+    --secondary: 40 20% 93%;
+    --secondary-foreground: 220 15% 25%;
 
-    --muted: 40 15% 93%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 40 15% 90%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 40 25% 92%;
-    --accent-foreground: 220 20% 25%;
+    --accent: 40 20% 91%;
+    --accent-foreground: 220 15% 25%;
 
-    /* Risk levels - calm versions */
-    --risk-low: 150 35% 45%;
-    --risk-low-bg: 150 35% 95%;
-    --risk-medium: 35 75% 50%;
-    --risk-medium-bg: 35 75% 95%;
-    --risk-high: 0 55% 55%;
-    --risk-high-bg: 0 55% 96%;
+    /* Risk levels - soft, muted colors */
+    /* Low: sage green */
+    --risk-low: 145 25% 42%;
+    --risk-low-bg: 145 30% 94%;
+    /* Medium: soft amber */
+    --risk-medium: 38 60% 50%;
+    --risk-medium-bg: 38 50% 94%;
+    /* High: muted coral */
+    --risk-high: 8 50% 55%;
+    --risk-high-bg: 8 45% 95%;
 
     /* Status colors */
-    --status-not-started: 220 15% 75%;
-    --status-in-progress: 210 60% 50%;
-    --status-completed: 150 35% 45%;
+    --status-not-started: 220 12% 70%;
+    --status-in-progress: 175 30% 40%;
+    --status-completed: 145 25% 45%;
 
-    --destructive: 0 55% 55%;
-    --destructive-foreground: 40 20% 98%;
+    --destructive: 8 50% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 40 15% 88%;
-    --input: 40 15% 88%;
-    --ring: 220 25% 25%;
+    --border: 40 15% 86%;
+    --input: 40 15% 86%;
+    --ring: 175 30% 35%;
 
-    --radius: 0.625rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 40 20% 97%;
-    --sidebar-foreground: 220 20% 25%;
-    --sidebar-primary: 220 25% 25%;
-    --sidebar-primary-foreground: 40 20% 98%;
-    --sidebar-accent: 40 25% 92%;
-    --sidebar-accent-foreground: 220 20% 25%;
-    --sidebar-border: 40 15% 88%;
-    --sidebar-ring: 220 25% 25%;
+    --sidebar-background: 40 20% 95%;
+    --sidebar-foreground: 220 15% 25%;
+    --sidebar-primary: 175 30% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 40 20% 91%;
+    --sidebar-accent-foreground: 220 15% 25%;
+    --sidebar-border: 40 15% 86%;
+    --sidebar-ring: 175 30% 35%;
 
-    /* Custom gradients */
-    --gradient-calm: linear-gradient(135deg, hsl(40 20% 98%) 0%, hsl(40 25% 95%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(40 20% 99%) 100%);
-
-    /* Shadows */
-    --shadow-soft: 0 2px 8px -2px hsl(220 20% 20% / 0.06), 0 4px 16px -4px hsl(220 20% 20% / 0.08);
-    --shadow-card: 0 1px 3px hsl(220 20% 20% / 0.04), 0 4px 12px -2px hsl(220 20% 20% / 0.06);
-    --shadow-elevated: 0 8px 30px -8px hsl(220 20% 20% / 0.12);
+    /* Shadows - very soft */
+    --shadow-soft: 0 2px 8px -2px hsl(220 15% 22% / 0.04), 0 4px 16px -4px hsl(220 15% 22% / 0.06);
+    --shadow-card: 0 1px 3px hsl(220 15% 22% / 0.03), 0 4px 12px -2px hsl(220 15% 22% / 0.05);
+    --shadow-elevated: 0 6px 24px -6px hsl(220 15% 22% / 0.08);
   }
 
   .dark {
-    --background: 220 20% 10%;
-    --foreground: 40 15% 95%;
+    --background: 220 18% 10%;
+    --foreground: 40 12% 92%;
 
-    --card: 220 20% 13%;
-    --card-foreground: 40 15% 95%;
+    --card: 220 18% 13%;
+    --card-foreground: 40 12% 92%;
 
-    --popover: 220 20% 13%;
-    --popover-foreground: 40 15% 95%;
+    --popover: 220 18% 13%;
+    --popover-foreground: 40 12% 92%;
 
-    --primary: 40 20% 92%;
-    --primary-foreground: 220 20% 12%;
+    --primary: 175 35% 55%;
+    --primary-foreground: 220 18% 10%;
 
-    --secondary: 220 18% 18%;
-    --secondary-foreground: 40 15% 90%;
+    --secondary: 220 16% 18%;
+    --secondary-foreground: 40 12% 88%;
 
-    --muted: 220 18% 18%;
-    --muted-foreground: 40 10% 60%;
+    --muted: 220 16% 18%;
+    --muted-foreground: 40 10% 55%;
 
-    --accent: 220 18% 20%;
-    --accent-foreground: 40 15% 90%;
+    --accent: 220 16% 20%;
+    --accent-foreground: 40 12% 88%;
 
-    --risk-low: 150 35% 50%;
-    --risk-low-bg: 150 25% 18%;
-    --risk-medium: 35 70% 55%;
-    --risk-medium-bg: 35 50% 18%;
-    --risk-high: 0 55% 60%;
-    --risk-high-bg: 0 40% 18%;
+    --risk-low: 145 30% 50%;
+    --risk-low-bg: 145 20% 16%;
+    --risk-medium: 38 55% 55%;
+    --risk-medium-bg: 38 40% 16%;
+    --risk-high: 8 45% 58%;
+    --risk-high-bg: 8 35% 16%;
 
-    --destructive: 0 55% 55%;
-    --destructive-foreground: 40 20% 98%;
+    --destructive: 8 45% 55%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 220 18% 22%;
-    --input: 220 18% 22%;
-    --ring: 40 20% 92%;
+    --border: 220 16% 22%;
+    --input: 220 16% 22%;
+    --ring: 175 35% 55%;
 
-    --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.3);
-    --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.2), 0 4px 12px -2px hsl(0 0% 0% / 0.25);
-    --shadow-elevated: 0 8px 30px -8px hsl(0 0% 0% / 0.4);
+    --shadow-soft: 0 2px 8px -2px hsl(0 0% 0% / 0.25);
+    --shadow-card: 0 1px 3px hsl(0 0% 0% / 0.18), 0 4px 12px -2px hsl(0 0% 0% / 0.22);
+    --shadow-elevated: 0 6px 24px -6px hsl(0 0% 0% / 0.35);
   }
 }
 
@@ -171,6 +172,38 @@
 
   .status-completed {
     background-color: hsl(var(--status-completed));
+  }
+
+  /* Completed items - visually softened */
+  .obligation-completed {
+    @apply opacity-50;
+    filter: saturate(0.7);
+  }
+
+  /* Timeline styling */
+  .timeline-line {
+    @apply absolute left-3 top-0 bottom-0 w-px bg-border;
+  }
+
+  .timeline-dot {
+    @apply w-2.5 h-2.5 rounded-full border-2 border-card z-10;
+  }
+
+  .timeline-dot-low {
+    background-color: hsl(var(--risk-low));
+  }
+
+  .timeline-dot-medium {
+    background-color: hsl(var(--risk-medium));
+  }
+
+  .timeline-dot-high {
+    background-color: hsl(var(--risk-high));
+  }
+
+  .timeline-dot-completed {
+    background-color: hsl(var(--status-completed));
+    @apply opacity-50;
   }
 }
 
