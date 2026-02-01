@@ -195,6 +195,47 @@ export type Database = {
         }
         Relationships: []
       }
+      reminders: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          obligation_id: string
+          reminder_time: string
+          sent: boolean
+          type: string
+          user_id: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          id?: string
+          obligation_id: string
+          reminder_time: string
+          sent?: boolean
+          type: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          obligation_id?: string
+          reminder_time?: string
+          sent?: boolean
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

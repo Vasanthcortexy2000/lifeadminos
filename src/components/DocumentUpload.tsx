@@ -8,10 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-import { ExtractedObligation } from '@/types/obligation';
+import { ExtractedObligation, RiskLevel } from '@/types/obligation';
 import { ReviewObligationsModal } from './ReviewObligationsModal';
 import { extractTextFromPDF } from '@/lib/pdfExtractor';
 import { isImageFile } from '@/lib/imageOCR';
+import { useReminders } from '@/hooks/useReminders';
 
 
 interface DocumentUploadProps {
@@ -33,6 +34,7 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
   const [pastedText, setPastedText] = useState('');
   const [pastedDocName, setPastedDocName] = useState('');
   const { user } = useAuth();
+  const { createRemindersForObligation } = useReminders();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -171,25 +173,43 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
     documentName: string
   ) => {
     for (const obligation of obligations) {
-      const { error: insertError } = await supabase.from('obligations').insert({
-        user_id: user!.id,
-        document_id: documentId,
-        title: obligation.title,
-        description: obligation.summary,
-        source_document: documentName,
-        deadline: obligation.due_date || null,
-        risk_level: obligation.risk_level,
-        status: 'not-started',
-        type: 'mandatory',
-        frequency: 'one-time',
-        consequence: obligation.consequence,
-        steps: obligation.steps || [],
-        confidence: obligation.confidence || null,
-      });
+      const { data: insertedData, error: insertError } = await supabase
+        .from('obligations')
+        .insert({
+          user_id: user!.id,
+          document_id: documentId,
+          title: obligation.title,
+          description: obligation.summary,
+          source_document: documentName,
+          deadline: obligation.due_date || null,
+          risk_level: obligation.risk_level,
+          status: 'not-started',
+          type: 'mandatory',
+          frequency: 'one-time',
+          consequence: obligation.consequence,
+          steps: obligation.steps || [],
+          confidence: obligation.confidence || null,
+        })
+        .select('id')
+        .single();
 
       if (insertError) {
         console.error('Error inserting obligation:', insertError);
         throw insertError;
+      }
+
+      // Create reminders for obligations with due dates (skip completed)
+      if (obligation.due_date && insertedData) {
+        try {
+          await createRemindersForObligation(
+            insertedData.id,
+            new Date(obligation.due_date),
+            obligation.risk_level as RiskLevel
+          );
+        } catch (reminderError) {
+          console.error('Error creating reminders:', reminderError);
+          // Don't fail the whole operation if reminders fail
+        }
       }
     }
   };
