@@ -12,8 +12,19 @@ interface NudgesPanelProps {
 export function NudgesPanel({ nudges, onDismiss, className }: NudgesPanelProps) {
   const unreadCount = nudges.filter(n => !n.read).length;
 
+  // Show a calm message when there are no nudges
   if (nudges.length === 0) {
-    return null;
+    return (
+      <div className={cn('card-calm p-5', className)}>
+        <div className="flex items-center gap-2 mb-3">
+          <Bell className="w-4 h-4 text-muted-foreground" />
+          <h3 className="text-sm font-medium text-foreground">Updates</h3>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Nothing urgent right now. I'll let you know when something needs attention.
+        </p>
+      </div>
+    );
   }
 
   return (
