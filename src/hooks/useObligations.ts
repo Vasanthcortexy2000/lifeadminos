@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Obligation, ObligationStatus, RiskLevel, ObligationType, ObligationFrequency, ObligationUpdate } from '@/types/obligation';
 import { useToast } from '@/hooks/use-toast';
+import { useReminders } from '@/hooks/useReminders';
 import type { Json } from '@/integrations/supabase/types';
 
 interface DbObligation {
@@ -58,6 +59,7 @@ export function useObligations() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { updateRemindersForObligation, deleteRemindersForObligation } = useReminders();
 
   const fetchObligations = useCallback(async () => {
     if (!user) {
@@ -112,6 +114,15 @@ export function useObligations() {
       throw error;
     }
 
+    // Delete reminders if obligation is completed
+    if (status === 'completed') {
+      try {
+        await deleteRemindersForObligation(id);
+      } catch (reminderError) {
+        console.error('Error deleting reminders:', reminderError);
+      }
+    }
+
     setObligations(prev =>
       prev.map(ob =>
         ob.id === id ? { ...ob, status, updatedAt: new Date() } : ob
@@ -150,6 +161,20 @@ export function useObligations() {
       throw error;
     }
 
+    // Update reminders if deadline or risk level changed
+    if (updates.deadline !== undefined || updates.riskLevel !== undefined) {
+      const currentObligation = obligations.find(ob => ob.id === id);
+      if (currentObligation) {
+        const newDeadline = updates.deadline !== undefined ? updates.deadline : currentObligation.deadline;
+        const newRiskLevel = updates.riskLevel !== undefined ? updates.riskLevel : currentObligation.riskLevel;
+        try {
+          await updateRemindersForObligation(id, newDeadline, newRiskLevel);
+        } catch (reminderError) {
+          console.error('Error updating reminders:', reminderError);
+        }
+      }
+    }
+
     setObligations(prev =>
       prev.map(ob =>
         ob.id === id
@@ -165,6 +190,13 @@ export function useObligations() {
 
   const deleteObligation = async (id: string): Promise<void> => {
     if (!user) return;
+
+    // Delete reminders first (cascade should handle this, but explicit is safer)
+    try {
+      await deleteRemindersForObligation(id);
+    } catch (reminderError) {
+      console.error('Error deleting reminders:', reminderError);
+    }
 
     const { error } = await supabase
       .from('obligations')
