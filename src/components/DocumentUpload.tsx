@@ -73,13 +73,15 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
   };
 
   const extractTextFromFile = async (file: File): Promise<string> => {
+    const fileNameLower = file.name.toLowerCase();
+
     // Handle text files
-    if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+    if (file.type === 'text/plain' || fileNameLower.endsWith('.txt')) {
       return await file.text();
     }
     
     // Handle PDFs
-    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+    if (file.type === 'application/pdf' || fileNameLower.endsWith('.pdf')) {
       try {
         const text = await extractTextFromPDF(file);
         if (text.trim().length < 50) {
