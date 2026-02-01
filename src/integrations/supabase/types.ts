@@ -101,6 +101,7 @@ export type Database = {
           risk_level: string
           source_document: string | null
           status: string
+          steps: Json | null
           title: string
           type: string
           updated_at: string
@@ -118,6 +119,7 @@ export type Database = {
           risk_level?: string
           source_document?: string | null
           status?: string
+          steps?: Json | null
           title: string
           type?: string
           updated_at?: string
@@ -135,6 +137,7 @@ export type Database = {
           risk_level?: string
           source_document?: string | null
           status?: string
+          steps?: Json | null
           title?: string
           type?: string
           updated_at?: string

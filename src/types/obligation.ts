@@ -11,13 +11,14 @@ export interface Obligation {
   title: string;
   description: string;
   sourceDocument: string;
-  deadline: Date;
+  deadline: Date | null;
   riskLevel: RiskLevel;
   status: ObligationStatus;
   type: ObligationType;
   frequency: ObligationFrequency;
   consequence?: string;
   leadTime?: string;
+  steps?: string[];
   createdAt: Date;
   updatedAt: Date;
 }

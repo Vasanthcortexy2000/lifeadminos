@@ -103,13 +103,13 @@ export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
           title: obligation.title,
           description: obligation.summary,
           source_document: documentName,
-          deadline: obligation.due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          deadline: obligation.due_date || null,
           risk_level: obligation.risk_level,
           status: 'not-started',
           type: 'mandatory',
           frequency: 'one-time',
           consequence: obligation.consequence,
-          lead_time: obligation.steps.length > 0 ? obligation.steps.join(' → ') : null,
+          steps: obligation.steps || [],
         });
 
         if (insertError) {
