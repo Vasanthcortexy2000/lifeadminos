@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Upload, FileText, X, Loader2, ClipboardPaste } from 'lucide-react';
+import { Upload, FileText, X, Loader2, ClipboardPaste, Image } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -11,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { ExtractedObligation } from '@/types/obligation';
 import { ReviewObligationsModal } from './ReviewObligationsModal';
 import { extractTextFromPDF } from '@/lib/pdfExtractor';
+import { extractTextFromImage, isImageFile } from '@/lib/imageOCR';
 
 
 interface DocumentUploadProps {
@@ -66,12 +67,37 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const extractTextFromFile = async (file: File): Promise<string> => {
+  const extractTextFromFile = async (file: File): Promise<{ text: string; sourceType: string; ocrFailed?: boolean }> => {
     const fileNameLower = file.name.toLowerCase();
 
     // Handle text files
     if (file.type === 'text/plain' || fileNameLower.endsWith('.txt')) {
-      return await file.text();
+      return { text: await file.text(), sourceType: 'file' };
+    }
+    
+    // Handle images with OCR
+    if (isImageFile(file)) {
+      try {
+        toast({
+          title: "Reading your image…",
+          description: "This may take a moment.",
+        });
+        
+        const ocrResult = await extractTextFromImage(file);
+        
+        if (!ocrResult.success || ocrResult.text.length < 50) {
+          return { 
+            text: ocrResult.text || '', 
+            sourceType: 'image',
+            ocrFailed: true 
+          };
+        }
+        
+        return { text: ocrResult.text, sourceType: 'image' };
+      } catch (error) {
+        console.error('Image OCR failed:', error);
+        return { text: '', sourceType: 'image', ocrFailed: true };
+      }
     }
     
     // Handle PDFs
@@ -80,17 +106,21 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
         const text = await extractTextFromPDF(file);
         if (text.trim().length < 50) {
           // PDF might be scanned/image-based
-          return `[Scanned PDF - limited text extracted]\n${text}`;
+          return { 
+            text: text, 
+            sourceType: 'file',
+            ocrFailed: true 
+          };
         }
-        return text;
+        return { text, sourceType: 'file' };
       } catch (error) {
         console.error('PDF extraction failed:', error);
-        return `[Could not extract text from ${file.name}]`;
+        return { text: '', sourceType: 'file', ocrFailed: true };
       }
     }
     
     // Fallback for other file types
-    return `[Content from ${file.name} - ${file.type || 'unknown type'}]`;
+    return { text: '', sourceType: 'file', ocrFailed: true };
   };
 
   const analyzeDocument = async (rawText: string, documentName: string): Promise<{ obligations: ExtractedObligation[]; rawResponse: unknown }> => {
@@ -142,7 +172,13 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
     }
   };
 
-  const processDocument = async (rawText: string, documentName: string, documentType: string) => {
+  const processDocument = async (
+    rawText: string, 
+    documentName: string, 
+    documentType: string,
+    sourceType: string = 'file',
+    ocrFailed: boolean = false
+  ) => {
     if (!user) {
       toast({
         title: "Please sign in to continue.",
@@ -154,9 +190,27 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
     setIsProcessing(true);
 
     try {
-      const isPlaceholderText =
-        rawText.startsWith('[Content from') ||
-        rawText.startsWith('[Could not extract text from');
+      // Check if we failed to extract readable text
+      if (ocrFailed || rawText.trim().length < 50) {
+        // Save document anyway
+        await supabase
+          .from('documents')
+          .insert({
+            user_id: user.id,
+            name: documentName,
+            type: documentType,
+            source_type: sourceType,
+            raw_text: rawText || null,
+          });
+
+        toast({
+          title: "I had trouble reading this image.",
+          description: "A clearer screenshot or pasted text will work best.",
+          variant: "default",
+        });
+        setIsProcessing(false);
+        return;
+      }
 
       // Save document to database
       const { data: docData, error: docError } = await supabase
@@ -165,7 +219,7 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
           user_id: user.id,
           name: documentName,
           type: documentType,
-          source_type: activeTab === 'paste' ? 'paste' : 'file',
+          source_type: sourceType,
           raw_text: rawText,
         })
         .select('id')
@@ -179,17 +233,6 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
         title: "Document received.",
         description: "I'm reviewing it now.",
       });
-
-      // If we couldn't actually extract any readable text, don't send placeholders to AI.
-      // (This prevents hallucinated obligations.)
-      if (isPlaceholderText) {
-        toast({
-          title: 'Could not read this PDF.',
-          description: 'Try a text-based PDF or use Paste Text mode.',
-          variant: 'destructive',
-        });
-        return;
-      }
 
       // Analyze document
       const { obligations } = await analyzeDocument(rawText, documentName);
@@ -229,9 +272,15 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
     }
 
     const file = uploadedFiles[0];
-    const rawText = await extractTextFromFile(file);
+    const { text, sourceType, ocrFailed } = await extractTextFromFile(file);
     
-    await processDocument(rawText, file.name, file.type || 'application/octet-stream');
+    await processDocument(
+      text, 
+      file.name, 
+      file.type || 'application/octet-stream',
+      sourceType,
+      ocrFailed
+    );
     
     // Clear the processed file
     setUploadedFiles(prev => prev.slice(1));
@@ -249,7 +298,7 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
 
     const docName = pastedDocName.trim() || `Pasted document ${new Date().toLocaleDateString()}`;
     
-    await processDocument(pastedText, docName, 'text/plain');
+    await processDocument(pastedText, docName, 'text/plain', 'paste');
     
     // Clear the pasted text
     setPastedText('');
@@ -324,10 +373,10 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    Drop documents here or click to browse
+                    Drop files here or click to browse
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    For best results, use text-based PDFs (not scanned images)
+                    Supports PDF, JPG, PNG, and screenshots
                   </p>
                 </div>
               </div>
