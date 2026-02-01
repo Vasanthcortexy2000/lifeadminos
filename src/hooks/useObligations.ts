@@ -115,6 +115,28 @@ export function useObligations() {
     );
   };
 
+  const deleteObligation = async (id: string): Promise<void> => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('obligations')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error deleting obligation:', error);
+      toast({
+        title: "Couldn't delete — try again.",
+        description: 'There was an error deleting the obligation.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+
+    setObligations(prev => prev.filter(ob => ob.id !== id));
+  };
+
   const addObligation = async (obligation: Omit<Obligation, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (!user) return null;
 
@@ -157,6 +179,7 @@ export function useObligations() {
     obligations,
     loading,
     updateStatus,
+    deleteObligation,
     addObligation,
     refetch: fetchObligations,
   };
