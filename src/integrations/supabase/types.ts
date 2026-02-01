@@ -88,6 +88,82 @@ export type Database = {
           },
         ]
       }
+      obligation_evidence: {
+        Row: {
+          file_name: string
+          file_type: string | null
+          file_url: string
+          id: string
+          obligation_id: string
+          uploaded_at: string
+          user_id: string
+        }
+        Insert: {
+          file_name: string
+          file_type?: string | null
+          file_url: string
+          id?: string
+          obligation_id: string
+          uploaded_at?: string
+          user_id: string
+        }
+        Update: {
+          file_name?: string
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          obligation_id?: string
+          uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "obligation_evidence_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      obligation_shares: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          obligation_id: string
+          revoked: boolean
+          share_token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          obligation_id: string
+          revoked?: boolean
+          share_token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          obligation_id?: string
+          revoked?: boolean
+          share_token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "obligation_shares_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       obligations: {
         Row: {
           confidence: number | null
@@ -96,6 +172,7 @@ export type Database = {
           deadline: string | null
           description: string
           document_id: string | null
+          domain: string | null
           frequency: string
           id: string
           lead_time: string | null
@@ -115,6 +192,7 @@ export type Database = {
           deadline?: string | null
           description: string
           document_id?: string | null
+          domain?: string | null
           frequency?: string
           id?: string
           lead_time?: string | null
@@ -134,6 +212,7 @@ export type Database = {
           deadline?: string | null
           description?: string
           document_id?: string | null
+          domain?: string | null
           frequency?: string
           id?: string
           lead_time?: string | null
@@ -162,9 +241,14 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string | null
+          email_reminder_enabled: boolean | null
           id: string
           occupation_type: string | null
           preferred_reminder_tone: string | null
+          reminder_enabled: boolean | null
+          reminder_timing_high: number | null
+          reminder_timing_low: number | null
+          reminder_timing_medium: number | null
           updated_at: string
           user_id: string
           visa_type: string | null
@@ -174,9 +258,14 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          email_reminder_enabled?: boolean | null
           id?: string
           occupation_type?: string | null
           preferred_reminder_tone?: string | null
+          reminder_enabled?: boolean | null
+          reminder_timing_high?: number | null
+          reminder_timing_low?: number | null
+          reminder_timing_medium?: number | null
           updated_at?: string
           user_id: string
           visa_type?: string | null
@@ -186,9 +275,14 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          email_reminder_enabled?: boolean | null
           id?: string
           occupation_type?: string | null
           preferred_reminder_tone?: string | null
+          reminder_enabled?: boolean | null
+          reminder_timing_high?: number | null
+          reminder_timing_low?: number | null
+          reminder_timing_medium?: number | null
           updated_at?: string
           user_id?: string
           visa_type?: string | null

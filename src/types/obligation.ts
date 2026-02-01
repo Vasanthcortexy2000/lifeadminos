@@ -6,6 +6,8 @@ export type ObligationType = 'mandatory' | 'optional';
 
 export type ObligationFrequency = 'one-time' | 'ongoing';
 
+export type LifeDomain = 'visa' | 'work' | 'health' | 'finance' | 'study' | 'housing' | 'legal' | 'general';
+
 export interface ExtractedObligation {
   title: string;
   summary: string;
@@ -14,6 +16,7 @@ export interface ExtractedObligation {
   consequence: string;
   steps: string[];
   confidence: number;
+  domain?: LifeDomain;
 }
 
 export interface Obligation {
@@ -31,6 +34,7 @@ export interface Obligation {
   leadTime?: string;
   steps?: string[];
   confidence?: number;
+  domain?: LifeDomain;
   createdAt: Date;
   updatedAt: Date;
 }
