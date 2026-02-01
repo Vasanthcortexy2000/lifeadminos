@@ -10,14 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { ExtractedObligation } from '@/types/obligation';
 import { ReviewObligationsModal } from './ReviewObligationsModal';
-import { DebugPanel } from './DebugPanel';
 import { extractTextFromPDF } from '@/lib/pdfExtractor';
 
-interface DebugInfo {
-  extractedText: string;
-  rawResponse: unknown;
-  documentName: string;
-}
 
 interface DocumentUploadProps {
   onUpload?: (files: File[]) => void;
@@ -33,7 +27,7 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
   const [extractedObligations, setExtractedObligations] = useState<ExtractedObligation[]>([]);
   const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
   const [currentDocumentName, setCurrentDocumentName] = useState<string>('');
-  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
+  
   const [activeTab, setActiveTab] = useState<string>('upload');
   const [pastedText, setPastedText] = useState('');
   const [pastedDocName, setPastedDocName] = useState('');
@@ -188,11 +182,6 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
       // If we couldn't actually extract any readable text, don't send placeholders to AI.
       // (This prevents hallucinated obligations.)
       if (isPlaceholderText) {
-        setDebugInfo({
-          extractedText: rawText,
-          rawResponse: { success: true, obligations: [] },
-          documentName,
-        });
         toast({
           title: 'Could not read this PDF.',
           description: 'Try a text-based PDF or use Paste Text mode.',
@@ -202,14 +191,7 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
       }
 
       // Analyze document
-      const { obligations, rawResponse } = await analyzeDocument(rawText, documentName);
-
-      // Set debug info
-      setDebugInfo({
-        extractedText: rawText,
-        rawResponse,
-        documentName: documentName,
-      });
+      const { obligations } = await analyzeDocument(rawText, documentName);
 
       if (obligations.length === 0) {
         toast({
@@ -436,14 +418,6 @@ Copy the full text from your letter, contract, or email and paste it here. This 
           </TabsContent>
         </Tabs>
 
-        {/* Debug Panel - shows after processing */}
-        {debugInfo && user && (
-          <DebugPanel
-            extractedText={debugInfo.extractedText}
-            rawResponse={debugInfo.rawResponse}
-            documentName={debugInfo.documentName}
-          />
-        )}
       </div>
 
       <ReviewObligationsModal

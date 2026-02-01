@@ -25,6 +25,7 @@ import { toast } from '@/hooks/use-toast';
 interface ObligationCardProps {
   obligation: Obligation;
   onStatusChange?: (id: string, status: ObligationStatus) => Promise<void> | void;
+  onDelete?: (id: string) => Promise<void>;
   onStepsUpdate?: (id: string, steps: string[]) => void;
   className?: string;
 }
@@ -35,7 +36,7 @@ const statusOptions: { value: ObligationStatus; label: string }[] = [
   { value: 'completed', label: 'Completed' },
 ];
 
-export function ObligationCard({ obligation, onStatusChange, onStepsUpdate, className }: ObligationCardProps) {
+export function ObligationCard({ obligation, onStatusChange, onDelete, onStepsUpdate, className }: ObligationCardProps) {
   const [isStepsOpen, setIsStepsOpen] = useState(false);
   const [checkedSteps, setCheckedSteps] = useState<Set<number>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
@@ -45,7 +46,7 @@ export function ObligationCard({ obligation, onStatusChange, onStepsUpdate, clas
   const [isSavingSteps, setIsSavingSteps] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editValue, setEditValue] = useState('');
-  
+  const [isDeleting, setIsDeleting] = useState(false);
   const hasSteps = localSteps.length > 0;
 
   const handleStatusChange = async (value: string) => {
@@ -149,6 +150,15 @@ export function ObligationCard({ obligation, onStatusChange, onStepsUpdate, clas
   const handleCancelEdit = () => {
     setEditingIndex(null);
     setEditValue('');
+  };
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    setIsDeleting(true);
+    try {
+      await onDelete(obligation.id);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const formatDueDate = () => {
@@ -326,6 +336,20 @@ export function ObligationCard({ obligation, onStatusChange, onStepsUpdate, clas
             <Check className="w-3 h-3 text-[hsl(var(--status-completed))]" />
             <span className="text-muted-foreground">Saved</span>
           </div>
+
+          {/* Delete button */}
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="p-1.5 text-muted-foreground hover:text-destructive transition-colors rounded-md hover:bg-destructive/10"
+            title="Delete obligation"
+          >
+            {isDeleting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4" />
+            )}
+          </button>
         </div>
       </div>
     </div>

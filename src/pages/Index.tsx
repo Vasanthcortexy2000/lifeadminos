@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { obligations, loading: obligationsLoading, updateStatus, refetch } = useObligations();
+  const { obligations, loading: obligationsLoading, updateStatus, deleteObligation, refetch } = useObligations();
   const { nudges, dismissNudge } = useNudges();
 
   // Redirect to auth if not logged in
@@ -91,6 +91,7 @@ const Index = () => {
                 <GroupedTimeline
                   obligations={obligations}
                   onStatusChange={updateStatus}
+                  onDelete={deleteObligation}
                 />
               )}
             </section>

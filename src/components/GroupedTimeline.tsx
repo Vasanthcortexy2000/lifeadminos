@@ -8,6 +8,7 @@ import { AlertTriangle, Calendar, Clock } from 'lucide-react';
 interface GroupedTimelineProps {
   obligations: Obligation[];
   onStatusChange: (id: string, status: ObligationStatus) => void;
+  onDelete: (id: string) => Promise<void>;
   className?: string;
 }
 
@@ -39,7 +40,7 @@ interface ObligationGroup {
   emptyMessage: string;
 }
 
-export function GroupedTimeline({ obligations, onStatusChange, className }: GroupedTimelineProps) {
+export function GroupedTimeline({ obligations, onStatusChange, onDelete, className }: GroupedTimelineProps) {
   const groups = useMemo<ObligationGroup[]>(() => {
     // Filter out completed obligations for grouping
     const active = obligations.filter(ob => ob.status !== 'completed');
@@ -153,6 +154,7 @@ export function GroupedTimeline({ obligations, onStatusChange, className }: Grou
                   <ObligationCard
                     obligation={obligation}
                     onStatusChange={onStatusChange}
+                    onDelete={onDelete}
                   />
                 </div>
               ))}
