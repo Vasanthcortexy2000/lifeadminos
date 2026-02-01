@@ -11,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import { ExtractedObligation } from '@/types/obligation';
 import { ReviewObligationsModal } from './ReviewObligationsModal';
 import { DebugPanel } from './DebugPanel';
+import { extractTextFromPDF } from '@/lib/pdfExtractor';
 
 interface DebugInfo {
   extractedText: string;
@@ -72,9 +73,27 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
   };
 
   const extractTextFromFile = async (file: File): Promise<string> => {
+    // Handle text files
     if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
       return await file.text();
     }
+    
+    // Handle PDFs
+    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      try {
+        const text = await extractTextFromPDF(file);
+        if (text.trim().length < 50) {
+          // PDF might be scanned/image-based
+          return `[Scanned PDF - limited text extracted]\n${text}`;
+        }
+        return text;
+      } catch (error) {
+        console.error('PDF extraction failed:', error);
+        return `[Could not extract text from ${file.name}]`;
+      }
+    }
+    
+    // Fallback for other file types
     return `[Content from ${file.name} - ${file.type || 'unknown type'}]`;
   };
 
