@@ -157,6 +157,10 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
     setIsProcessing(true);
 
     try {
+      const isPlaceholderText =
+        rawText.startsWith('[Content from') ||
+        rawText.startsWith('[Could not extract text from');
+
       // Save document to database
       const { data: docData, error: docError } = await supabase
         .from('documents')
@@ -178,6 +182,22 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
         title: "Document received.",
         description: "I'm reviewing it now.",
       });
+
+      // If we couldn't actually extract any readable text, don't send placeholders to AI.
+      // (This prevents hallucinated obligations.)
+      if (isPlaceholderText) {
+        setDebugInfo({
+          extractedText: rawText,
+          rawResponse: { success: true, obligations: [] },
+          documentName,
+        });
+        toast({
+          title: 'Could not read this PDF.',
+          description: 'Try a text-based PDF or use Paste Text mode.',
+          variant: 'destructive',
+        });
+        return;
+      }
 
       // Analyze document
       const { obligations, rawResponse } = await analyzeDocument(rawText, documentName);
