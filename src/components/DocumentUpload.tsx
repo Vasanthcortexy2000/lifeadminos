@@ -1,6 +1,10 @@
 import { useState, useCallback } from 'react';
-import { Upload, FileText, X } from 'lucide-react';
+import { Upload, FileText, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 interface DocumentUploadProps {
   onUpload?: (files: File[]) => void;
@@ -10,6 +14,8 @@ interface DocumentUploadProps {
 export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { user } = useAuth();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -44,6 +50,73 @@ export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const extractTextFromFile = async (file: File): Promise<string> => {
+    // For text-based files, read content directly
+    if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+      return await file.text();
+    }
+    
+    // For other files, return a placeholder noting the file type
+    // In production, you'd use a document parsing service
+    return `[Content from ${file.name} - ${file.type || 'unknown type'}]`;
+  };
+
+  const handleProcessDocuments = async () => {
+    if (uploadedFiles.length === 0) {
+      toast({
+        title: "Please add a document before continuing.",
+        description: "Drop a file above or click to browse your files.",
+        variant: "default",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Please sign in to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      for (const file of uploadedFiles) {
+        const rawText = await extractTextFromFile(file);
+        
+        const { error } = await supabase.from('documents').insert({
+          user_id: user.id,
+          name: file.name,
+          type: file.type || 'application/octet-stream',
+          source_type: 'file',
+          raw_text: rawText,
+        });
+
+        if (error) {
+          throw error;
+        }
+      }
+
+      toast({
+        title: "Document received.",
+        description: "I'm reviewing it now.",
+      });
+
+      // Clear uploaded files after successful processing
+      setUploadedFiles([]);
+    } catch (error) {
+      console.error('Error processing documents:', error);
+      toast({
+        title: "Something went wrong.",
+        description: "Please try again in a moment.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className={cn('space-y-4', className)}>
       <div
@@ -60,7 +133,7 @@ export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
         <input
           type="file"
           multiple
-          accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+          accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt"
           onChange={handleFileSelect}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
@@ -97,6 +170,7 @@ export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
               <button
                 onClick={() => removeFile(index)}
                 className="p-1 hover:bg-accent rounded transition-colors"
+                disabled={isProcessing}
               >
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
@@ -104,6 +178,22 @@ export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
           ))}
         </div>
       )}
+
+      <Button
+        onClick={handleProcessDocuments}
+        disabled={isProcessing}
+        className="w-full"
+        size="lg"
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          'Process document'
+        )}
+      </Button>
     </div>
   );
 }

@@ -20,6 +20,8 @@ export type Database = {
           id: string
           name: string
           processed: boolean
+          raw_text: string | null
+          source_type: string | null
           type: string
           uploaded_at: string
           user_id: string
@@ -29,6 +31,8 @@ export type Database = {
           id?: string
           name: string
           processed?: boolean
+          raw_text?: string | null
+          source_type?: string | null
           type: string
           uploaded_at?: string
           user_id: string
@@ -38,6 +42,8 @@ export type Database = {
           id?: string
           name?: string
           processed?: boolean
+          raw_text?: string | null
+          source_type?: string | null
           type?: string
           uploaded_at?: string
           user_id?: string
