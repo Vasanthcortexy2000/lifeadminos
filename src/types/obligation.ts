@@ -21,6 +21,7 @@ export interface Obligation {
   title: string;
   description: string;
   sourceDocument: string;
+  documentId?: string;
   deadline: Date | null;
   riskLevel: RiskLevel;
   status: ObligationStatus;
@@ -29,8 +30,17 @@ export interface Obligation {
   consequence?: string;
   leadTime?: string;
   steps?: string[];
+  confidence?: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ObligationUpdate {
+  title?: string;
+  description?: string;
+  deadline?: Date | null;
+  riskLevel?: RiskLevel;
+  steps?: string[];
 }
 
 export interface Document {

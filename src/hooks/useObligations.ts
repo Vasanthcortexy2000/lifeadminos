@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Obligation, ObligationStatus, RiskLevel, ObligationType, ObligationFrequency } from '@/types/obligation';
+import { Obligation, ObligationStatus, RiskLevel, ObligationType, ObligationFrequency, ObligationUpdate } from '@/types/obligation';
 import { useToast } from '@/hooks/use-toast';
 import type { Json } from '@/integrations/supabase/types';
 
@@ -20,6 +20,7 @@ interface DbObligation {
   consequence: string | null;
   lead_time: string | null;
   steps: Json;
+  confidence: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -37,6 +38,7 @@ function mapDbToObligation(db: DbObligation): Obligation {
     title: db.title,
     description: db.description,
     sourceDocument: db.source_document || 'Unknown',
+    documentId: db.document_id || undefined,
     deadline: db.deadline ? new Date(db.deadline) : null,
     riskLevel: db.risk_level as RiskLevel,
     status: db.status as ObligationStatus,
@@ -45,6 +47,7 @@ function mapDbToObligation(db: DbObligation): Obligation {
     consequence: db.consequence || undefined,
     leadTime: db.lead_time || undefined,
     steps: parseSteps(db.steps),
+    confidence: db.confidence ?? undefined,
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
   };
@@ -115,6 +118,50 @@ export function useObligations() {
     );
   };
 
+  const updateObligation = async (id: string, updates: ObligationUpdate): Promise<void> => {
+    if (!user) return;
+
+    const dbUpdates: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (updates.title !== undefined) dbUpdates.title = updates.title;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.deadline !== undefined) {
+      dbUpdates.deadline = updates.deadline ? updates.deadline.toISOString() : null;
+    }
+    if (updates.riskLevel !== undefined) dbUpdates.risk_level = updates.riskLevel;
+    if (updates.steps !== undefined) dbUpdates.steps = updates.steps;
+
+    const { error } = await supabase
+      .from('obligations')
+      .update(dbUpdates)
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error updating obligation:', error);
+      toast({
+        title: "Couldn't save — try again.",
+        description: 'There was an error updating the obligation.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+
+    setObligations(prev =>
+      prev.map(ob =>
+        ob.id === id
+          ? {
+              ...ob,
+              ...updates,
+              updatedAt: new Date(),
+            }
+          : ob
+      )
+    );
+  };
+
   const deleteObligation = async (id: string): Promise<void> => {
     if (!user) return;
 
@@ -179,6 +226,7 @@ export function useObligations() {
     obligations,
     loading,
     updateStatus,
+    updateObligation,
     deleteObligation,
     addObligation,
     refetch: fetchObligations,
