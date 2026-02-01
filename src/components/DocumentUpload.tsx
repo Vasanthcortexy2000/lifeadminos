@@ -6,6 +6,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
+interface ExtractedObligation {
+  title: string;
+  summary: string;
+  due_date: string | null;
+  risk_level: 'low' | 'medium' | 'high';
+  consequence: string;
+  steps: string[];
+}
+
 interface DocumentUploadProps {
   onUpload?: (files: File[]) => void;
   className?: string;
@@ -61,6 +70,60 @@ export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
     return `[Content from ${file.name} - ${file.type || 'unknown type'}]`;
   };
 
+  const analyzeAndExtractObligations = async (documentId: string, rawText: string, documentName: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-document', {
+        body: { rawText, documentName }
+      });
+
+      if (error) {
+        console.error('Error calling analyze function:', error);
+        throw error;
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const obligations: ExtractedObligation[] = data.obligations || [];
+      
+      if (obligations.length === 0) {
+        toast({
+          title: "No immediate actions found.",
+          description: "I'll keep this on file.",
+        });
+        return 0;
+      }
+
+      // Insert each obligation into the database
+      for (const obligation of obligations) {
+        const { error: insertError } = await supabase.from('obligations').insert({
+          user_id: user!.id,
+          document_id: documentId,
+          title: obligation.title,
+          description: obligation.summary,
+          source_document: documentName,
+          deadline: obligation.due_date || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          risk_level: obligation.risk_level,
+          status: 'not-started',
+          type: 'mandatory',
+          frequency: 'one-time',
+          consequence: obligation.consequence,
+          lead_time: obligation.steps.length > 0 ? obligation.steps.join(' → ') : null,
+        });
+
+        if (insertError) {
+          console.error('Error inserting obligation:', insertError);
+        }
+      }
+
+      return obligations.length;
+    } catch (error) {
+      console.error('Error analyzing document:', error);
+      throw error;
+    }
+  };
+
   const handleProcessDocuments = async () => {
     if (uploadedFiles.length === 0) {
       toast({
@@ -82,26 +145,44 @@ export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
     setIsProcessing(true);
 
     try {
+      let totalObligations = 0;
+
       for (const file of uploadedFiles) {
         const rawText = await extractTextFromFile(file);
         
-        const { error } = await supabase.from('documents').insert({
-          user_id: user.id,
-          name: file.name,
-          type: file.type || 'application/octet-stream',
-          source_type: 'file',
-          raw_text: rawText,
+        // Save document to database
+        const { data: docData, error: docError } = await supabase
+          .from('documents')
+          .insert({
+            user_id: user.id,
+            name: file.name,
+            type: file.type || 'application/octet-stream',
+            source_type: 'file',
+            raw_text: rawText,
+          })
+          .select('id')
+          .single();
+
+        if (docError) {
+          throw docError;
+        }
+
+        toast({
+          title: "Document received.",
+          description: "I'm reviewing it now.",
         });
 
-        if (error) {
-          throw error;
-        }
+        // Analyze document and extract obligations
+        const count = await analyzeAndExtractObligations(docData.id, rawText, file.name);
+        totalObligations += count;
       }
 
-      toast({
-        title: "Document received.",
-        description: "I'm reviewing it now.",
-      });
+      if (totalObligations > 0) {
+        toast({
+          title: `Found ${totalObligations} obligation${totalObligations > 1 ? 's' : ''}.`,
+          description: "I've added them to your timeline.",
+        });
+      }
 
       // Clear uploaded files after successful processing
       setUploadedFiles([]);
