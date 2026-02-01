@@ -161,8 +161,8 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
 
       if (obligations.length === 0) {
         toast({
-          title: "No immediate actions found.",
-          description: "I'll keep this on file.",
+          title: "No actionable items found in this document.",
+          description: "I'll keep it on file.",
         });
         setUploadedFiles(prev => prev.slice(1));
       } else {
