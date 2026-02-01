@@ -6,6 +6,16 @@ export type ObligationType = 'mandatory' | 'optional';
 
 export type ObligationFrequency = 'one-time' | 'ongoing';
 
+export interface ExtractedObligation {
+  title: string;
+  summary: string;
+  due_date: string | null;
+  risk_level: RiskLevel;
+  consequence: string;
+  steps: string[];
+  confidence: number;
+}
+
 export interface Obligation {
   id: string;
   title: string;

@@ -5,25 +5,23 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
-
-interface ExtractedObligation {
-  title: string;
-  summary: string;
-  due_date: string | null;
-  risk_level: 'low' | 'medium' | 'high';
-  consequence: string;
-  steps: string[];
-}
+import { ExtractedObligation } from '@/types/obligation';
+import { ReviewObligationsModal } from './ReviewObligationsModal';
 
 interface DocumentUploadProps {
   onUpload?: (files: File[]) => void;
+  onObligationsSaved?: () => void;
   className?: string;
 }
 
-export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
+export function DocumentUpload({ onUpload, onObligationsSaved, className }: DocumentUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [extractedObligations, setExtractedObligations] = useState<ExtractedObligation[]>([]);
+  const [currentDocumentId, setCurrentDocumentId] = useState<string | null>(null);
+  const [currentDocumentName, setCurrentDocumentName] = useState<string>('');
   const { user } = useAuth();
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -60,67 +58,54 @@ export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
   };
 
   const extractTextFromFile = async (file: File): Promise<string> => {
-    // For text-based files, read content directly
     if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
       return await file.text();
     }
-    
-    // For other files, return a placeholder noting the file type
-    // In production, you'd use a document parsing service
     return `[Content from ${file.name} - ${file.type || 'unknown type'}]`;
   };
 
-  const analyzeAndExtractObligations = async (documentId: string, rawText: string, documentName: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('analyze-document', {
-        body: { rawText, documentName }
+  const analyzeDocument = async (rawText: string, documentName: string): Promise<ExtractedObligation[]> => {
+    const { data, error } = await supabase.functions.invoke('analyze-document', {
+      body: { rawText, documentName }
+    });
+
+    if (error) {
+      console.error('Error calling analyze function:', error);
+      throw error;
+    }
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    return data.obligations || [];
+  };
+
+  const saveObligations = async (
+    obligations: ExtractedObligation[], 
+    documentId: string, 
+    documentName: string
+  ) => {
+    for (const obligation of obligations) {
+      const { error: insertError } = await supabase.from('obligations').insert({
+        user_id: user!.id,
+        document_id: documentId,
+        title: obligation.title,
+        description: obligation.summary,
+        source_document: documentName,
+        deadline: obligation.due_date || null,
+        risk_level: obligation.risk_level,
+        status: 'not-started',
+        type: 'mandatory',
+        frequency: 'one-time',
+        consequence: obligation.consequence,
+        steps: obligation.steps || [],
       });
 
-      if (error) {
-        console.error('Error calling analyze function:', error);
-        throw error;
+      if (insertError) {
+        console.error('Error inserting obligation:', insertError);
+        throw insertError;
       }
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      const obligations: ExtractedObligation[] = data.obligations || [];
-      
-      if (obligations.length === 0) {
-        toast({
-          title: "No immediate actions found.",
-          description: "I'll keep this on file.",
-        });
-        return 0;
-      }
-
-      // Insert each obligation into the database
-      for (const obligation of obligations) {
-        const { error: insertError } = await supabase.from('obligations').insert({
-          user_id: user!.id,
-          document_id: documentId,
-          title: obligation.title,
-          description: obligation.summary,
-          source_document: documentName,
-          deadline: obligation.due_date || null,
-          risk_level: obligation.risk_level,
-          status: 'not-started',
-          type: 'mandatory',
-          frequency: 'one-time',
-          consequence: obligation.consequence,
-          steps: obligation.steps || [],
-        });
-
-        if (insertError) {
-          console.error('Error inserting obligation:', insertError);
-        }
-      }
-
-      return obligations.length;
-    } catch (error) {
-      console.error('Error analyzing document:', error);
-      throw error;
     }
   };
 
@@ -145,47 +130,48 @@ export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
     setIsProcessing(true);
 
     try {
-      let totalObligations = 0;
+      // Process first file (we'll handle one at a time for the review flow)
+      const file = uploadedFiles[0];
+      const rawText = await extractTextFromFile(file);
+      
+      // Save document to database
+      const { data: docData, error: docError } = await supabase
+        .from('documents')
+        .insert({
+          user_id: user.id,
+          name: file.name,
+          type: file.type || 'application/octet-stream',
+          source_type: 'file',
+          raw_text: rawText,
+        })
+        .select('id')
+        .single();
 
-      for (const file of uploadedFiles) {
-        const rawText = await extractTextFromFile(file);
-        
-        // Save document to database
-        const { data: docData, error: docError } = await supabase
-          .from('documents')
-          .insert({
-            user_id: user.id,
-            name: file.name,
-            type: file.type || 'application/octet-stream',
-            source_type: 'file',
-            raw_text: rawText,
-          })
-          .select('id')
-          .single();
-
-        if (docError) {
-          throw docError;
-        }
-
-        toast({
-          title: "Document received.",
-          description: "I'm reviewing it now.",
-        });
-
-        // Analyze document and extract obligations
-        const count = await analyzeAndExtractObligations(docData.id, rawText, file.name);
-        totalObligations += count;
+      if (docError) {
+        throw docError;
       }
 
-      if (totalObligations > 0) {
-        toast({
-          title: `Found ${totalObligations} obligation${totalObligations > 1 ? 's' : ''}.`,
-          description: "I've added them to your timeline.",
-        });
-      }
+      toast({
+        title: "Document received.",
+        description: "I'm reviewing it now.",
+      });
 
-      // Clear uploaded files after successful processing
-      setUploadedFiles([]);
+      // Analyze document
+      const obligations = await analyzeDocument(rawText, file.name);
+
+      if (obligations.length === 0) {
+        toast({
+          title: "No immediate actions found.",
+          description: "I'll keep this on file.",
+        });
+        setUploadedFiles(prev => prev.slice(1));
+      } else {
+        // Show review modal
+        setExtractedObligations(obligations);
+        setCurrentDocumentId(docData.id);
+        setCurrentDocumentName(file.name);
+        setShowReviewModal(true);
+      }
     } catch (error) {
       console.error('Error processing documents:', error);
       toast({
@@ -198,83 +184,122 @@ export function DocumentUpload({ onUpload, className }: DocumentUploadProps) {
     }
   };
 
+  const handleConfirmObligations = async (obligations: ExtractedObligation[]) => {
+    if (!currentDocumentId || !user) return;
+
+    try {
+      await saveObligations(obligations, currentDocumentId, currentDocumentName);
+      
+      toast({
+        title: `Saved ${obligations.length} obligation${obligations.length !== 1 ? 's' : ''}.`,
+        description: "I've added them to your timeline.",
+      });
+
+      // Clear the processed file and reset state
+      setUploadedFiles(prev => prev.slice(1));
+      setExtractedObligations([]);
+      setCurrentDocumentId(null);
+      setCurrentDocumentName('');
+      onObligationsSaved?.();
+    } catch (error) {
+      console.error('Error saving obligations:', error);
+      toast({
+        title: "Couldn't save — try again.",
+        description: "There was an error saving your obligations.",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   return (
-    <div className={cn('space-y-4', className)}>
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={cn(
-          'relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer',
-          isDragOver
-            ? 'border-primary bg-accent'
-            : 'border-border hover:border-primary/50 hover:bg-accent/50'
-        )}
-      >
-        <input
-          type="file"
-          multiple
-          accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt"
-          onChange={handleFileSelect}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-        />
-        
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
-            <Upload className="w-5 h-5 text-muted-foreground" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">
-              Drop documents here or click to browse
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              PDFs, images, and documents accepted
-            </p>
+    <>
+      <div className={cn('space-y-4', className)}>
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={cn(
+            'relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer',
+            isDragOver
+              ? 'border-primary bg-accent'
+              : 'border-border hover:border-primary/50 hover:bg-accent/50'
+          )}
+        >
+          <input
+            type="file"
+            multiple
+            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt"
+            onChange={handleFileSelect}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
+              <Upload className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Drop documents here or click to browse
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                PDFs, images, and documents accepted
+              </p>
+            </div>
           </div>
         </div>
+
+        {uploadedFiles.length > 0 && (
+          <div className="space-y-2">
+            {uploadedFiles.map((file, index) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-3 bg-secondary rounded-lg animate-fade-in"
+              >
+                <FileText className="w-4 h-4 text-muted-foreground" />
+                <span className="flex-1 text-sm text-foreground truncate">
+                  {file.name}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {(file.size / 1024).toFixed(1)} KB
+                </span>
+                <button
+                  onClick={() => removeFile(index)}
+                  className="p-1 hover:bg-accent rounded transition-colors"
+                  disabled={isProcessing}
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <Button
+          onClick={handleProcessDocuments}
+          disabled={isProcessing}
+          className="w-full"
+          size="lg"
+        >
+          {isProcessing ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            'Process document'
+          )}
+        </Button>
       </div>
 
-      {uploadedFiles.length > 0 && (
-        <div className="space-y-2">
-          {uploadedFiles.map((file, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 p-3 bg-secondary rounded-lg animate-fade-in"
-            >
-              <FileText className="w-4 h-4 text-muted-foreground" />
-              <span className="flex-1 text-sm text-foreground truncate">
-                {file.name}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {(file.size / 1024).toFixed(1)} KB
-              </span>
-              <button
-                onClick={() => removeFile(index)}
-                className="p-1 hover:bg-accent rounded transition-colors"
-                disabled={isProcessing}
-              >
-                <X className="w-4 h-4 text-muted-foreground" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <Button
-        onClick={handleProcessDocuments}
-        disabled={isProcessing}
-        className="w-full"
-        size="lg"
-      >
-        {isProcessing ? (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin" />
-            Processing...
-          </>
-        ) : (
-          'Process document'
-        )}
-      </Button>
-    </div>
+      <ReviewObligationsModal
+        open={showReviewModal}
+        onOpenChange={setShowReviewModal}
+        obligations={extractedObligations}
+        documentName={currentDocumentName}
+        onConfirm={handleConfirmObligations}
+        onSaveAnyway={handleConfirmObligations}
+      />
+    </>
   );
 }

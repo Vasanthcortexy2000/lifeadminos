@@ -3,7 +3,7 @@ import { Obligation, ObligationStatus } from '@/types/obligation';
 import { RiskBadge } from './RiskBadge';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { FileText, ChevronDown, ChevronUp, Check } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -16,10 +16,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ObligationCardProps {
   obligation: Obligation;
-  onStatusChange?: (id: string, status: ObligationStatus) => void;
+  onStatusChange?: (id: string, status: ObligationStatus) => Promise<void> | void;
   className?: string;
 }
 
@@ -31,13 +32,37 @@ const statusOptions: { value: ObligationStatus; label: string }[] = [
 
 export function ObligationCard({ obligation, onStatusChange, className }: ObligationCardProps) {
   const [isStepsOpen, setIsStepsOpen] = useState(false);
+  const [checkedSteps, setCheckedSteps] = useState<Set<number>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
   
   const hasSteps = obligation.steps && obligation.steps.length > 0;
 
-  const handleStatusChange = (value: string) => {
+  const handleStatusChange = async (value: string) => {
     if (onStatusChange) {
-      onStatusChange(obligation.id, value as ObligationStatus);
+      setIsSaving(true);
+      try {
+        await onStatusChange(obligation.id, value as ObligationStatus);
+        setShowSaved(true);
+        setTimeout(() => setShowSaved(false), 2000);
+      } catch {
+        // Error is handled in the hook
+      } finally {
+        setIsSaving(false);
+      }
     }
+  };
+
+  const toggleStep = (index: number) => {
+    setCheckedSteps(prev => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
   };
 
   const formatDueDate = () => {
@@ -66,7 +91,7 @@ export function ObligationCard({ obligation, onStatusChange, className }: Obliga
             {obligation.title}
           </h3>
 
-          {/* Description */}
+          {/* Description/Summary */}
           <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
             {obligation.description}
           </p>
@@ -85,7 +110,7 @@ export function ObligationCard({ obligation, onStatusChange, className }: Obliga
             </div>
           </div>
 
-          {/* Expandable steps section */}
+          {/* Expandable steps section with checklist */}
           <Collapsible open={isStepsOpen} onOpenChange={setIsStepsOpen} className="mt-4">
             <CollapsibleTrigger className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
               {isStepsOpen ? (
@@ -94,14 +119,34 @@ export function ObligationCard({ obligation, onStatusChange, className }: Obliga
                 <ChevronDown className="w-4 h-4" />
               )}
               <span>View steps</span>
+              {hasSteps && checkedSteps.size > 0 && (
+                <span className="text-xs">
+                  ({checkedSteps.size}/{obligation.steps!.length} done)
+                </span>
+              )}
             </CollapsibleTrigger>
             <CollapsibleContent className="mt-3 pt-3 border-t border-border">
               {hasSteps ? (
                 <ul className="space-y-2">
                   {obligation.steps!.map((step, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
-                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground mt-1.5 flex-shrink-0" />
-                      <span>{step}</span>
+                    <li key={index} className="flex items-start gap-3">
+                      <Checkbox
+                        id={`step-${obligation.id}-${index}`}
+                        checked={checkedSteps.has(index)}
+                        onCheckedChange={() => toggleStep(index)}
+                        className="mt-0.5"
+                      />
+                      <label
+                        htmlFor={`step-${obligation.id}-${index}`}
+                        className={cn(
+                          'text-sm cursor-pointer transition-colors',
+                          checkedSteps.has(index)
+                            ? 'text-muted-foreground line-through'
+                            : 'text-foreground'
+                        )}
+                      >
+                        {step}
+                      </label>
                     </li>
                   ))}
                 </ul>
@@ -112,9 +157,13 @@ export function ObligationCard({ obligation, onStatusChange, className }: Obliga
           </Collapsible>
         </div>
 
-        {/* Status dropdown */}
-        <div className="flex-shrink-0">
-          <Select value={obligation.status} onValueChange={handleStatusChange}>
+        {/* Status dropdown with save indicator */}
+        <div className="flex-shrink-0 flex flex-col items-end gap-1">
+          <Select 
+            value={obligation.status} 
+            onValueChange={handleStatusChange}
+            disabled={isSaving}
+          >
             <SelectTrigger className="w-[140px] bg-secondary border-0">
               <SelectValue />
             </SelectTrigger>
@@ -126,6 +175,15 @@ export function ObligationCard({ obligation, onStatusChange, className }: Obliga
               ))}
             </SelectContent>
           </Select>
+          
+          {/* Save confirmation */}
+          <div className={cn(
+            'flex items-center gap-1 text-xs transition-opacity duration-300',
+            showSaved ? 'opacity-100' : 'opacity-0'
+          )}>
+            <Check className="w-3 h-3 text-[hsl(var(--status-completed))]" />
+            <span className="text-muted-foreground">Saved</span>
+          </div>
         </div>
       </div>
     </div>
