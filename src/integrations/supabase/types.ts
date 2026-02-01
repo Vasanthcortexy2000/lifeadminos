@@ -14,7 +14,175 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      documents: {
+        Row: {
+          file_url: string | null
+          id: string
+          name: string
+          processed: boolean
+          type: string
+          uploaded_at: string
+          user_id: string
+        }
+        Insert: {
+          file_url?: string | null
+          id?: string
+          name: string
+          processed?: boolean
+          type: string
+          uploaded_at?: string
+          user_id: string
+        }
+        Update: {
+          file_url?: string | null
+          id?: string
+          name?: string
+          processed?: boolean
+          type?: string
+          uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nudges: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          obligation_id: string
+          read: boolean
+          tone: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          obligation_id: string
+          read?: boolean
+          tone?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          obligation_id?: string
+          read?: boolean
+          tone?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nudges_obligation_id_fkey"
+            columns: ["obligation_id"]
+            isOneToOne: false
+            referencedRelation: "obligations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      obligations: {
+        Row: {
+          consequence: string | null
+          created_at: string
+          deadline: string
+          description: string
+          document_id: string | null
+          frequency: string
+          id: string
+          lead_time: string | null
+          risk_level: string
+          source_document: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          consequence?: string | null
+          created_at?: string
+          deadline: string
+          description: string
+          document_id?: string | null
+          frequency?: string
+          id?: string
+          lead_time?: string | null
+          risk_level?: string
+          source_document?: string | null
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          consequence?: string | null
+          created_at?: string
+          deadline?: string
+          description?: string
+          document_id?: string | null
+          frequency?: string
+          id?: string
+          lead_time?: string | null
+          risk_level?: string
+          source_document?: string | null
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "obligations_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          country: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          occupation_type: string | null
+          preferred_reminder_tone: string | null
+          updated_at: string
+          user_id: string
+          visa_type: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          occupation_type?: string | null
+          preferred_reminder_tone?: string | null
+          updated_at?: string
+          user_id: string
+          visa_type?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          occupation_type?: string | null
+          preferred_reminder_tone?: string | null
+          updated_at?: string
+          user_id?: string
+          visa_type?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
