@@ -75,7 +75,8 @@ export function useObligations() {
 
       if (error) throw error;
 
-      setObligations((data || []).map(mapDbToObligation));
+      // Cast to DbObligation since the auto-generated types may not include newly added columns
+      setObligations((data as unknown as DbObligation[] || []).map(mapDbToObligation));
     } catch (error) {
       console.error('Error fetching obligations:', error);
       toast({
@@ -208,7 +209,8 @@ export function useObligations() {
 
       if (error) throw error;
 
-      const newObligation = mapDbToObligation(data);
+      // Cast to DbObligation since the auto-generated types may not include newly added columns
+      const newObligation = mapDbToObligation(data as unknown as DbObligation);
       setObligations(prev => [...prev, newObligation]);
       return newObligation;
     } catch (error) {
