@@ -92,7 +92,7 @@ export type Database = {
         Row: {
           consequence: string | null
           created_at: string
-          deadline: string
+          deadline: string | null
           description: string
           document_id: string | null
           frequency: string
@@ -110,7 +110,7 @@ export type Database = {
         Insert: {
           consequence?: string | null
           created_at?: string
-          deadline: string
+          deadline?: string | null
           description: string
           document_id?: string | null
           frequency?: string
@@ -128,7 +128,7 @@ export type Database = {
         Update: {
           consequence?: string | null
           created_at?: string
-          deadline?: string
+          deadline?: string | null
           description?: string
           document_id?: string | null
           frequency?: string
