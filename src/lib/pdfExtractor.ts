@@ -1,10 +1,14 @@
 import * as pdfjsLib from 'pdfjs-dist';
-// Bundle the worker with Vite instead of loading from a CDN.
-// CDN worker loading can fail in some environments (CORS / module import issues),
-// which results in *all* PDF extractions returning empty/placeholder text.
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+// IMPORTANT: We must NOT rely on the CDN worker.
+// In this environment the CDN worker fetch is failing, which makes *all* PDFs unreadable.
+// Using Vite's `?worker` import gives us a bundled Worker and avoids the `?import` CDN path.
+// eslint-disable-next-line import/no-named-as-default
+import PdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+// Create a single shared worker instance.
+// pdf.js will reuse it for subsequent documents.
+// (The type is intentionally loose because Vite's worker import type is not declared here.)
+pdfjsLib.GlobalWorkerOptions.workerPort = new (PdfWorker as any)();
 
 export async function extractTextFromPDF(file: File): Promise<string> {
   try {
