@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Obligation, ObligationStatus, RiskLevel, ObligationType, ObligationFrequency } from '@/types/obligation';
 import { useToast } from '@/hooks/use-toast';
+import type { Json } from '@/integrations/supabase/types';
 
 interface DbObligation {
   id: string;
@@ -11,15 +12,23 @@ interface DbObligation {
   title: string;
   description: string;
   source_document: string | null;
-  deadline: string;
+  deadline: string | null;
   risk_level: string;
   status: string;
   type: string;
   frequency: string;
   consequence: string | null;
   lead_time: string | null;
+  steps: Json;
   created_at: string;
   updated_at: string;
+}
+
+function parseSteps(steps: Json): string[] | undefined {
+  if (Array.isArray(steps)) {
+    return steps.filter((s): s is string => typeof s === 'string');
+  }
+  return undefined;
 }
 
 function mapDbToObligation(db: DbObligation): Obligation {
@@ -28,13 +37,14 @@ function mapDbToObligation(db: DbObligation): Obligation {
     title: db.title,
     description: db.description,
     sourceDocument: db.source_document || 'Unknown',
-    deadline: new Date(db.deadline),
+    deadline: db.deadline ? new Date(db.deadline) : null,
     riskLevel: db.risk_level as RiskLevel,
     status: db.status as ObligationStatus,
     type: db.type as ObligationType,
     frequency: db.frequency as ObligationFrequency,
     consequence: db.consequence || undefined,
     leadTime: db.lead_time || undefined,
+    steps: parseSteps(db.steps),
     createdAt: new Date(db.created_at),
     updatedAt: new Date(db.updated_at),
   };
