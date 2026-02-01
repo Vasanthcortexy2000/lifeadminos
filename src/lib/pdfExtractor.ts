@@ -1,7 +1,10 @@
 import * as pdfjsLib from 'pdfjs-dist';
+// Bundle the worker with Vite instead of loading from a CDN.
+// CDN worker loading can fail in some environments (CORS / module import issues),
+// which results in *all* PDF extractions returning empty/placeholder text.
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 
-// Set up the worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 export async function extractTextFromPDF(file: File): Promise<string> {
   try {

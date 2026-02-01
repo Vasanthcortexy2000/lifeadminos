@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ExtractedObligation, RiskLevel } from '@/types/obligation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,14 +45,21 @@ export function ReviewObligationsModal({
   onConfirm,
   onSaveAnyway,
 }: ReviewObligationsModalProps) {
-  const [obligations, setObligations] = useState<EditableObligation[]>(() =>
-    initialObligations.map((ob, i) => ({
-      ...ob,
-      _id: `${i}-${Date.now()}`,
-      _expanded: false,
-    }))
-  );
+  const [obligations, setObligations] = useState<EditableObligation[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Keep local editable state in sync with new analysis results.
+  // Without this, the modal can get stuck showing 0 obligations forever.
+  useEffect(() => {
+    if (!open) return;
+    setObligations(
+      (initialObligations || []).map((ob, i) => ({
+        ...ob,
+        _id: `${i}-${Date.now()}`,
+        _expanded: false,
+      }))
+    );
+  }, [open, initialObligations]);
 
   const updateObligation = (id: string, updates: Partial<ExtractedObligation>) => {
     setObligations(prev =>
