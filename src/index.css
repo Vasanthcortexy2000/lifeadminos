@@ -236,3 +236,29 @@
     }
   }
 }
+
+/* Auth page background utilities */
+.auth-background {
+  /* Calm, textured scenic background suitable for login/signup */
+  background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2000&q=80');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-background::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* soft warm overlay to keep contrast and calm tone */
+  background: rgba(250, 245, 240, 0.55);
+  backdrop-filter: blur(6px) saturate(0.9);
+  z-index: 0;
+}
+
+.auth-background > * {
+  position: relative;
+  z-index: 1;
+}
