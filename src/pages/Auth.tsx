@@ -225,7 +225,7 @@ export default function Auth() {
 
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full bg-[hsl(15_65%_55%)] hover:bg-[hsl(15_65%_48%)] text-white" 
               disabled={isSubmitting}
             >
               {isSubmitting ? (
