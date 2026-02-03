@@ -239,11 +239,8 @@
 
 /* Auth page background utilities */
 .auth-background {
-  /* Calm, textured scenic background suitable for login/signup */
-  background-image: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2000&q=80');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  /* Base: warm cream */
+  background-color: hsl(40 22% 96%);
   position: relative;
   overflow: hidden;
 }
@@ -252,9 +249,24 @@
   content: "";
   position: absolute;
   inset: 0;
-  /* soft warm overlay to keep contrast and calm tone */
-  background: rgba(250, 245, 240, 0.55);
-  backdrop-filter: blur(6px) saturate(0.9);
+  /* Soft blurred orbs - calm, modern vibe */
+  background: 
+    radial-gradient(
+      ellipse 80% 50% at 20% 40%,
+      hsl(175 30% 92% / 0.6) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 80% 20%,
+      hsl(40 30% 94% / 0.5) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse 70% 60% at 60% 80%,
+      hsl(175 25% 94% / 0.4) 0%,
+      transparent 50%
+    );
+  pointer-events: none;
   z-index: 0;
 }
 

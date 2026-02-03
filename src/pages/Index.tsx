@@ -10,10 +10,14 @@ import { ReminderBanner } from '@/components/ReminderBanner';
 import { TodayFocus } from '@/components/TodayFocus';
 import { ReminderPreferencesDialog } from '@/components/ReminderPreferencesDialog';
 import { DomainFilter, LifeDomain, LIFE_DOMAINS } from '@/components/LifeDomain';
+import { EmptyState } from '@/components/EmptyState';
+import { DashboardStats } from '@/components/DashboardStats';
 import { useAuth } from '@/contexts/AuthContext';
 import { useObligations } from '@/hooks/useObligations';
 import { useNudges } from '@/hooks/useNudges';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { FileText } from 'lucide-react';
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
@@ -79,6 +83,13 @@ const Index = () => {
     }
   };
 
+  const scrollToAddDocuments = () => {
+    const section = document.getElementById('add-documents');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -97,6 +108,11 @@ const Index = () => {
           <ReminderPreferencesDialog />
         </div>
 
+        {/* At a glance stats - only when there are obligations */}
+        {!obligationsLoading && obligations.length > 0 && (
+          <DashboardStats obligations={obligations} className="mb-6" />
+        )}
+
         {/* Reminder Banner - calm, dismissible */}
         {!obligationsLoading && obligations.length > 0 && (
           <ReminderBanner 
@@ -114,6 +130,23 @@ const Index = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Empty state - when no obligations yet */}
+            {!obligationsLoading && obligations.length === 0 && (
+              <section className="animate-slide-up rounded-xl border border-border bg-card/50 p-8">
+                <EmptyState
+                  title="Nothing to track yet"
+                  description="Upload a document or paste text below to extract obligations and deadlines. I'll help you keep on top of what matters."
+                  variant="calm"
+                />
+                <div className="mt-6 flex justify-center">
+                  <Button onClick={scrollToAddDocuments} className="gap-2">
+                    <FileText className="h-4 w-4" />
+                    Add your first obligation
+                  </Button>
+                </div>
+              </section>
+            )}
+
             {/* Weekly Summary - high value, calming overview */}
             {!obligationsLoading && obligations.length > 0 && (
               <section className="animate-slide-up">
@@ -122,7 +155,11 @@ const Index = () => {
             )}
 
             {/* Document Upload */}
-            <section className="animate-slide-up" style={{ animationDelay: '100ms' }}>
+            <section
+              id="add-documents"
+              className="animate-slide-up scroll-mt-8"
+              style={{ animationDelay: '100ms' }}
+            >
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">
                 Add Documents
               </h3>

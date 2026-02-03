@@ -10,9 +10,10 @@ import { ShareObligation } from './ShareObligation';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { getDueDateStatus } from '@/lib/dateUtils';
+import { buildGoogleCalendarEventUrl } from '@/lib/googleCalendar';
 import { 
   FileText, ChevronDown, ChevronUp, Check, Plus, Trash2, 
-  Loader2, Pencil, X, AlertCircle, Calendar
+  Loader2, Pencil, X, AlertCircle, Calendar, CalendarPlus
 } from 'lucide-react';
 import {
   Select,
@@ -112,6 +113,7 @@ export function ObligationCard({
   const isCompleted = obligation.status === 'completed';
   const dueDateStatus = getDueDateStatus(obligation.deadline);
   const isOverdue = dueDateStatus === 'overdue' && !isCompleted;
+  const googleCalUrl = buildGoogleCalendarEventUrl(obligation);
 
   // Sync local steps with prop changes
   useEffect(() => {
@@ -449,7 +451,7 @@ export function ObligationCard({
             </div>
           )}
 
-          {/* Evidence, Share, and Overdue actions */}
+          {/* Evidence, Share, Add to Google Calendar, and Overdue actions */}
           <div className="flex flex-wrap items-center gap-4 mb-3">
             <EvidenceAttachment 
               obligationId={obligation.id}
@@ -462,6 +464,18 @@ export function ObligationCard({
               existingShares={shares}
               onShareChange={fetchEvidenceAndShares}
             />
+            {googleCalUrl && (
+              <a
+                href={googleCalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                title="Add to Google Calendar"
+              >
+                <CalendarPlus className="w-3.5 h-3.5" />
+                Add to Google Calendar
+              </a>
+            )}
             {isOverdue && (
               <button
                 onClick={() => setShowRescheduleDialog(true)}
