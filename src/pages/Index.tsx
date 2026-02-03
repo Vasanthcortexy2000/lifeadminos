@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { DocumentUpload } from '@/components/DocumentUpload';
 import { GroupedTimeline } from '@/components/GroupedTimeline';
@@ -22,6 +22,7 @@ import { FileText } from 'lucide-react';
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedDomains, setSelectedDomains] = useState<LifeDomain[]>([]);
   const { 
     obligations, 
@@ -44,6 +45,14 @@ const Index = () => {
       navigate('/auth');
     }
   }, [user, authLoading, navigate]);
+
+  // Scroll to add-documents section when hash is present
+  useEffect(() => {
+    if (location.hash === '#add-documents') {
+      const el = document.getElementById('add-documents');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [location.hash]);
 
   const handleUpload = (files: File[]) => {
     console.log('Files uploaded:', files);
