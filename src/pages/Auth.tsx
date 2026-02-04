@@ -144,11 +144,11 @@ export default function Auth() {
 
           {/* Tagline */}
           <h2 className="text-3xl font-semibold text-foreground mb-4 leading-tight">
-            All your deadlines.<br />One calm place.
+            Deadlines. Appointments. Timetables.<br />All in one calm place.
           </h2>
           
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            Uni assignments. Visa renewals. Tax returns. Bills. Everything important—tracked automatically so you never miss what matters.
+            If it has a due date, we track it. Upload any document and let AI extract every deadline—then get reminded exactly when you need to act.
           </p>
 
           {/* What it does */}
@@ -172,7 +172,7 @@ export default function Auth() {
 
           {/* Use cases */}
           <p className="text-xs text-muted-foreground">
-            <span className="font-medium text-foreground/80">Perfect for:</span> Students, freelancers, visa holders, busy professionals—anyone juggling multiple responsibilities.
+            <span className="font-medium text-foreground/80">Works for:</span> Assignments, exams, visa renewals, bills, appointments, subscriptions, contracts—anything with a deadline.
           </p>
         </div>
       </div>
@@ -200,12 +200,12 @@ export default function Auth() {
             {/* Mobile Value Prop */}
             <div className="lg:hidden mb-6 sm:mb-8 text-center">
               <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
-                {isLogin ? 'Welcome back' : 'All your deadlines. One place.'}
+                {isLogin ? 'Welcome back' : 'Never miss a deadline again'}
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground">
                 {isLogin 
                   ? "I've been keeping track of things for you." 
-                  : "Uni, work, visa, bills—upload any document and we'll track every deadline for you."}
+                  : "Assignments, appointments, bills, renewals—upload any document and we'll guide you through every deadline."}
               </p>
             </div>
 
