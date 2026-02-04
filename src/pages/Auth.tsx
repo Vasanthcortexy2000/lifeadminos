@@ -144,43 +144,36 @@ export default function Auth() {
 
           {/* Tagline */}
           <h2 className="text-3xl font-semibold text-foreground mb-4 leading-tight">
-            Never let important deadlines slip through the cracks
+            All your deadlines.<br />One calm place.
           </h2>
           
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            Life Admin OS turns confusing documents into clear responsibilities, so you can feel less overwhelmed and more in control.
+            Uni assignments. Visa renewals. Tax returns. Bills. Everything important—tracked automatically so you never miss what matters.
           </p>
 
-          {/* Features */}
-          <ul className="space-y-4">
-            <li className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-              </div>
-              <div>
-                <p className="font-medium text-foreground">Upload any document</p>
-                <p className="text-sm text-muted-foreground">PDFs, images, contracts—we extract what matters</p>
-              </div>
-            </li>
-            <li className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-              </div>
-              <div>
-                <p className="font-medium text-foreground">AI-powered extraction</p>
-                <p className="text-sm text-muted-foreground">Automatically identifies deadlines, obligations, and consequences</p>
-              </div>
-            </li>
-            <li className="flex items-start gap-3">
-              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                <div className="w-2 h-2 rounded-full bg-primary" />
-              </div>
-              <div>
-                <p className="font-medium text-foreground">Gentle reminders</p>
-                <p className="text-sm text-muted-foreground">Stress-aware nudges that help without overwhelming you</p>
-              </div>
-            </li>
-          </ul>
+          {/* What it does */}
+          <div className="bg-card/60 rounded-xl p-5 mb-6 border border-border/50">
+            <p className="text-sm font-medium text-foreground mb-3">How it works:</p>
+            <ol className="space-y-3 text-sm">
+              <li className="flex items-start gap-3">
+                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-medium">1</span>
+                <span className="text-muted-foreground"><span className="text-foreground font-medium">Upload</span> any document—syllabus, contract, letter, screenshot</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-medium">2</span>
+                <span className="text-muted-foreground"><span className="text-foreground font-medium">AI extracts</span> every deadline, due date, and obligation</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-medium">3</span>
+                <span className="text-muted-foreground"><span className="text-foreground font-medium">Get reminded</span> at the right time, without the stress</span>
+              </li>
+            </ol>
+          </div>
+
+          {/* Use cases */}
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-foreground/80">Perfect for:</span> Students, freelancers, visa holders, busy professionals—anyone juggling multiple responsibilities.
+          </p>
         </div>
       </div>
 
@@ -207,12 +200,12 @@ export default function Auth() {
             {/* Mobile Value Prop */}
             <div className="lg:hidden mb-6 sm:mb-8 text-center">
               <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
-                {isLogin ? 'Welcome back' : 'Get started'}
+                {isLogin ? 'Welcome back' : 'All your deadlines. One place.'}
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground">
                 {isLogin 
                   ? "I've been keeping track of things for you." 
-                  : "Turn documents into clear responsibilities. Never miss a deadline again."}
+                  : "Uni, work, visa, bills—upload any document and we'll track every deadline for you."}
               </p>
             </div>
 
