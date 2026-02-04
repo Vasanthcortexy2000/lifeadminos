@@ -127,150 +127,222 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col auth-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur-sm" role="banner">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-              <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" aria-hidden="true" />
+    <div className="min-h-screen bg-background flex flex-col lg:flex-row auth-background">
+      {/* Left Side - Branding & Value Proposition */}
+      <div className="hidden lg:flex lg:w-1/2 bg-primary/5 flex-col justify-center px-12 py-16">
+        <div className="max-w-md mx-auto">
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
+              <Shield className="w-7 h-7 text-primary-foreground" aria-hidden="true" />
             </div>
-            <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-semibold text-foreground">Life Admin OS</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">Your responsibility guardian</p>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Life Admin OS</h1>
+              <p className="text-sm text-muted-foreground">Your responsibility guardian</p>
             </div>
           </div>
+
+          {/* Tagline */}
+          <h2 className="text-3xl font-semibold text-foreground mb-4 leading-tight">
+            Never let important deadlines slip through the cracks
+          </h2>
+          
+          <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+            Life Admin OS turns confusing documents into clear responsibilities, so you can feel less overwhelmed and more in control.
+          </p>
+
+          {/* Features */}
+          <ul className="space-y-4">
+            <li className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Upload any document</p>
+                <p className="text-sm text-muted-foreground">PDFs, images, contracts—we extract what matters</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">AI-powered extraction</p>
+                <p className="text-sm text-muted-foreground">Automatically identifies deadlines, obligations, and consequences</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3">
+              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <div className="w-2 h-2 rounded-full bg-primary" />
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Gentle reminders</p>
+                <p className="text-sm text-muted-foreground">Stress-aware nudges that help without overwhelming you</p>
+              </div>
+            </li>
+          </ul>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12" id="main-content">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-6 sm:mb-8">
-            <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
-              {isLogin ? 'Welcome back' : 'Get started'}
-            </h2>
-            <p className="text-sm sm:text-base text-muted-foreground">
-              {isLogin 
-                ? "I've been keeping track of things for you." 
-                : "I'll help you never miss an important deadline again."}
-            </p>
+      {/* Right Side - Auth Form */}
+      <div className="flex-1 flex flex-col">
+        {/* Mobile Header */}
+        <header className="border-b border-border bg-card/80 backdrop-blur-sm lg:hidden" role="banner">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-lg font-semibold text-foreground">Life Admin OS</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">Your responsibility guardian</p>
+              </div>
+            </div>
           </div>
+        </header>
 
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" noValidate>
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 min-h-[48px] sm:min-h-[44px]"
-                  required
-                  aria-invalid={errors.email ? 'true' : undefined}
-                  aria-describedby={errors.email ? 'email-error' : undefined}
-                  autoComplete="email"
-                />
-              </div>
-              {errors.email && (
-                <p id="email-error" className="text-sm text-destructive" role="alert">{errors.email}</p>
-              )}
+        {/* Main Content */}
+        <main className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12" id="main-content">
+          <div className="w-full max-w-md">
+            {/* Mobile Value Prop */}
+            <div className="lg:hidden mb-6 sm:mb-8 text-center">
+              <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
+                {isLogin ? 'Welcome back' : 'Get started'}
+              </h2>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                {isLogin 
+                  ? "I've been keeping track of things for you." 
+                  : "Turn documents into clear responsibilities. Never miss a deadline again."}
+              </p>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium">
-                Password
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 min-h-[48px] sm:min-h-[44px]"
-                  required
-                  aria-invalid={errors.password ? 'true' : undefined}
-                  aria-describedby={errors.password ? 'password-error' : undefined}
-                  autoComplete={isLogin ? 'current-password' : 'new-password'}
-                />
-              </div>
-              {errors.password && (
-                <p id="password-error" className="text-sm text-destructive" role="alert">{errors.password}</p>
-              )}
+            {/* Desktop Header */}
+            <div className="hidden lg:block text-center mb-6 sm:mb-8">
+              <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
+                {isLogin ? 'Welcome back' : 'Create your account'}
+              </h2>
+              <p className="text-sm sm:text-base text-muted-foreground">
+                {isLogin 
+                  ? "I've been keeping track of things for you." 
+                  : "Start organizing your life responsibilities today."}
+              </p>
             </div>
 
-            {!isLogin && (
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" noValidate>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium">
-                  Confirm Password
+                <Label htmlFor="email" className="text-sm font-medium">
+                  Email
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 min-h-[48px] sm:min-h-[44px]"
+                    required
+                    aria-invalid={errors.email ? 'true' : undefined}
+                    aria-describedby={errors.email ? 'email-error' : undefined}
+                    autoComplete="email"
+                  />
+                </div>
+                {errors.email && (
+                  <p id="email-error" className="text-sm text-destructive" role="alert">{errors.email}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">
+                  Password
                 </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
                   <Input
-                    id="confirmPassword"
+                    id="password"
                     type="password"
                     placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 min-h-[48px] sm:min-h-[44px]"
                     required
-                    aria-invalid={errors.confirmPassword ? 'true' : undefined}
-                    aria-describedby={errors.confirmPassword ? 'confirm-password-error' : undefined}
-                    autoComplete="new-password"
+                    aria-invalid={errors.password ? 'true' : undefined}
+                    aria-describedby={errors.password ? 'password-error' : undefined}
+                    autoComplete={isLogin ? 'current-password' : 'new-password'}
                   />
                 </div>
-                {errors.confirmPassword && (
-                  <p id="confirm-password-error" className="text-sm text-destructive" role="alert">{errors.confirmPassword}</p>
+                {errors.password && (
+                  <p id="password-error" className="text-sm text-destructive" role="alert">{errors.password}</p>
                 )}
               </div>
-            )}
 
-            <Button 
-              type="submit" 
-              className="w-full min-h-[48px] bg-[hsl(15_65%_55%)] hover:bg-[hsl(15_65%_48%)] text-white" 
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <span>Please wait...</span>
-              ) : (
-                <>
-                  {isLogin ? 'Sign in' : 'Create account'}
-                  <ArrowRight className="ml-2 w-4 h-4" aria-hidden="true" />
-                </>
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-sm font-medium">
+                    Confirm Password
+                  </Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="pl-10 min-h-[48px] sm:min-h-[44px]"
+                      required
+                      aria-invalid={errors.confirmPassword ? 'true' : undefined}
+                      aria-describedby={errors.confirmPassword ? 'confirm-password-error' : undefined}
+                      autoComplete="new-password"
+                    />
+                  </div>
+                  {errors.confirmPassword && (
+                    <p id="confirm-password-error" className="text-sm text-destructive" role="alert">{errors.confirmPassword}</p>
+                  )}
+                </div>
               )}
-            </Button>
-          </form>
 
-          <div className="mt-6 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(!isLogin);
-                setErrors({});
-              }}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors min-h-[44px] py-2 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-            >
-              {isLogin 
-                ? "Don't have an account? Sign up" 
-                : 'Already have an account? Sign in'}
-            </button>
-          </div>
+              <Button 
+                type="submit" 
+                className="w-full min-h-[48px] bg-[hsl(15_65%_55%)] hover:bg-[hsl(15_65%_48%)] text-white" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <span>Please wait...</span>
+                ) : (
+                  <>
+                    {isLogin ? 'Sign in' : 'Create account'}
+                    <ArrowRight className="ml-2 w-4 h-4" aria-hidden="true" />
+                  </>
+                )}
+              </Button>
+            </form>
 
-          {/* Trust Message */}
-          <div className="mt-6 sm:mt-8 p-4 bg-secondary/50 rounded-xl" role="note">
-            <p className="text-xs text-muted-foreground text-center leading-relaxed">
-              Your documents are processed securely. We do not sell or train on your data.
-            </p>
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setErrors({});
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors min-h-[44px] py-2 px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+              >
+                {isLogin 
+                  ? "Don't have an account? Sign up" 
+                  : 'Already have an account? Sign in'}
+              </button>
+            </div>
+
+            {/* Trust Message */}
+            <div className="mt-6 sm:mt-8 p-4 bg-secondary/50 rounded-xl" role="note">
+              <p className="text-xs text-muted-foreground text-center leading-relaxed">
+                Your documents are processed securely. We do not sell or train on your data.
+              </p>
+            </div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }
