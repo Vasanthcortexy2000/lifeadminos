@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, AlertTriangle, Clock, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, CheckCircle2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getDueDateStatus } from '@/lib/dateUtils';
 import { DomainBadge } from '@/components/LifeDomain';
@@ -54,22 +54,33 @@ const CalendarPage = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle2 className="w-4 h-4 text-[hsl(var(--risk-low))]" />;
+        return <CheckCircle2 className="w-4 h-4 text-[hsl(var(--priority-low))]" />;
       case 'in-progress':
-        return <Clock className="w-4 h-4 text-[hsl(var(--risk-medium))]" />;
+        return <Clock className="w-4 h-4 text-[hsl(var(--priority-medium))]" />;
       default:
-        return <AlertTriangle className="w-4 h-4 text-muted-foreground" />;
+        return <Star className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
-  const getRiskColor = (riskLevel: string) => {
-    switch (riskLevel) {
+  const getPriorityLabel = (level: string) => {
+    switch (level) {
       case 'high':
-        return 'bg-[hsl(var(--risk-high-bg))] text-[hsl(var(--risk-high))]';
+        return 'High priority';
       case 'medium':
-        return 'bg-[hsl(var(--risk-medium-bg))] text-[hsl(var(--risk-medium))]';
+        return 'Medium priority';
       default:
-        return 'bg-[hsl(var(--risk-low-bg))] text-[hsl(var(--risk-low))]';
+        return 'Low priority';
+    }
+  };
+
+  const getPriorityColor = (priorityLevel: string) => {
+    switch (priorityLevel) {
+      case 'high':
+        return 'bg-[hsl(var(--priority-high-bg))] text-[hsl(var(--priority-high))]';
+      case 'medium':
+        return 'bg-[hsl(var(--priority-medium-bg))] text-[hsl(var(--priority-medium))]';
+      default:
+        return 'bg-[hsl(var(--priority-low-bg))] text-[hsl(var(--priority-low))]';
     }
   };
 
@@ -186,13 +197,13 @@ const CalendarPage = () => {
                             {dayObs.length > 0 && (
                               <div className="flex gap-0.5">
                                 {hasOverdue ? (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--risk-high))]" />
+                                  <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--priority-high))]" />
                                 ) : hasHigh ? (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--risk-high))]" />
+                                  <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--priority-high))]" />
                                 ) : hasMedium ? (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--risk-medium))]" />
+                                  <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--priority-medium))]" />
                                 ) : (
-                                  <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--risk-low))]" />
+                                  <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--priority-low))]" />
                                 )}
                                 {dayObs.length > 1 && (
                                   <span className="text-[10px] text-muted-foreground">+{dayObs.length - 1}</span>
@@ -209,16 +220,16 @@ const CalendarPage = () => {
                 {/* Legend */}
                 <div className="flex items-center gap-4 mt-4 pt-4 border-t text-xs text-muted-foreground">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-[hsl(var(--risk-high))]" />
-                    <span>High risk / Overdue</span>
+                    <div className="w-2 h-2 rounded-full bg-[hsl(var(--priority-high))]" />
+                    <span>High priority</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-[hsl(var(--risk-medium))]" />
-                    <span>Medium risk</span>
+                    <div className="w-2 h-2 rounded-full bg-[hsl(var(--priority-medium))]" />
+                    <span>Medium priority</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-[hsl(var(--risk-low))]" />
-                    <span>Low risk</span>
+                    <div className="w-2 h-2 rounded-full bg-[hsl(var(--priority-low))]" />
+                    <span>Low priority</span>
                   </div>
                 </div>
               </CardContent>
@@ -236,7 +247,7 @@ const CalendarPage = () => {
               <CardContent>
                 {selectedDateObligations.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-4 text-center">
-                    No obligations on this date
+                    Nothing scheduled for this date
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -259,8 +270,8 @@ const CalendarPage = () => {
                               {ob.description}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
-                              <Badge variant="secondary" className={cn("text-xs", getRiskColor(ob.riskLevel))}>
-                                {ob.riskLevel}
+                              <Badge variant="secondary" className={cn("text-xs", getPriorityColor(ob.riskLevel))}>
+                                {getPriorityLabel(ob.riskLevel)}
                               </Badge>
                               {ob.domain && <DomainBadge domain={ob.domain} />}
                             </div>
@@ -294,7 +305,7 @@ const CalendarPage = () => {
                       <p className="text-xs text-muted-foreground">Pending</p>
                     </div>
                     <div className="p-3 rounded-lg bg-secondary/50 text-center">
-                      <p className="text-2xl font-semibold text-[hsl(var(--risk-low))]">
+                      <p className="text-2xl font-semibold text-[hsl(var(--priority-low))]">
                         {obligations.filter(o => 
                           o.deadline && 
                           isSameMonth(new Date(o.deadline), currentMonth) &&
@@ -304,14 +315,14 @@ const CalendarPage = () => {
                       <p className="text-xs text-muted-foreground">Completed</p>
                     </div>
                     <div className="p-3 rounded-lg bg-secondary/50 text-center col-span-2">
-                      <p className="text-2xl font-semibold text-[hsl(var(--risk-high))]">
+                      <p className="text-2xl font-semibold text-[hsl(var(--priority-high))]">
                         {obligations.filter(o => 
                           o.deadline && 
                           getDueDateStatus(o.deadline) === 'overdue' &&
                           o.status !== 'completed'
                         ).length}
                       </p>
-                      <p className="text-xs text-muted-foreground">Overdue (all time)</p>
+                      <p className="text-xs text-muted-foreground">Past due date</p>
                     </div>
                   </div>
                 )}

@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Obligation } from '@/types/obligation';
 import { getDueDateStatus, getDaysUntilDue, formatDueStatus } from '@/lib/dateUtils';
 import { cn } from '@/lib/utils';
-import { AlertTriangle, X } from 'lucide-react';
+import { Star, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface UrgentNudgeBannerProps {
@@ -56,7 +56,7 @@ export function UrgentNudgeBanner({ obligations, className }: UrgentNudgeBannerP
       const status = getDueDateStatus(ob.deadline);
       const days = getDaysUntilDue(ob.deadline);
       
-      // High risk AND due within 7 days (or overdue)
+      // High priority AND due within 7 days (or past due)
       return ob.riskLevel === 'high' && (status === 'overdue' || (days !== null && days <= 7));
     }).slice(0, 2); // Max 2 nudges at a time
   }, [obligations, dismissed]);
@@ -70,30 +70,46 @@ export function UrgentNudgeBanner({ obligations, className }: UrgentNudgeBannerP
 
   return (
     <div className={cn('space-y-3', className)}>
-      {urgentItems.map(item => (
-        <div
-          key={item.id}
-          className="flex items-start gap-3 p-4 rounded-lg bg-[hsl(var(--risk-high-bg))] border border-[hsl(var(--risk-high))]/20"
-        >
-          <AlertTriangle className="w-5 h-5 text-[hsl(var(--risk-high))] flex-shrink-0 mt-0.5" />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground">
-              Heads up — {item.title.toLowerCase()} is coming up soon.
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {formatDueStatus(item.deadline)}
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleDismiss(item.id)}
-            className="flex-shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+      {urgentItems.map(item => {
+        const status = getDueDateStatus(item.deadline);
+        const isOverdue = status === 'overdue';
+        
+        return (
+          <div
+            key={item.id}
+            className={cn(
+              "flex items-start gap-3 p-4 rounded-lg border",
+              isOverdue 
+                ? "bg-[hsl(var(--priority-high-bg))] border-[hsl(var(--priority-high))]/20"
+                : "bg-secondary border-border/50"
+            )}
           >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-      ))}
+            <Star className={cn(
+              "w-5 h-5 flex-shrink-0 mt-0.5",
+              isOverdue ? "text-[hsl(var(--priority-high))]" : "text-[hsl(var(--priority-medium))]"
+            )} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                {isOverdue 
+                  ? `When you're ready — ${item.title.toLowerCase()}`
+                  : `Heads up — ${item.title.toLowerCase()} is coming up`
+                }
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {formatDueStatus(item.deadline)}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDismiss(item.id)}
+              className="flex-shrink-0 h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        );
+      })}
     </div>
   );
 }

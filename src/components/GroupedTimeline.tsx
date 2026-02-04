@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
-import { Obligation, ObligationStatus, ObligationUpdate, RiskLevel } from '@/types/obligation';
+import { Obligation, ObligationStatus, ObligationUpdate, PriorityLevel } from '@/types/obligation';
 import { ObligationCard } from './ObligationCard';
 import { EmptyState } from './EmptyState';
 import { cn } from '@/lib/utils';
 import { getDueDateStatus, getDaysUntilDue } from '@/lib/dateUtils';
-import { AlertTriangle, Calendar, Clock, CheckCircle2 } from 'lucide-react';
+import { Clock, Calendar, CheckCircle2, Star } from 'lucide-react';
 
 interface GroupedTimelineProps {
   obligations: Obligation[];
@@ -14,10 +14,10 @@ interface GroupedTimelineProps {
   className?: string;
 }
 
-const riskOrder: Record<RiskLevel, number> = { high: 0, medium: 1, low: 2 };
+const priorityOrder: Record<PriorityLevel, number> = { high: 0, medium: 1, low: 2 };
 
 interface ObligationGroup {
-  id: 'urgent' | 'upcoming' | 'no-due-date' | 'completed';
+  id: 'needs-attention' | 'upcoming' | 'no-due-date' | 'completed';
   title: string;
   icon: React.ReactNode;
   obligations: Obligation[];
@@ -36,27 +36,27 @@ export function GroupedTimeline({
     const active = obligations.filter(ob => ob.status !== 'completed');
     const completed = obligations.filter(ob => ob.status === 'completed');
 
-    // Urgent: high risk OR overdue OR due within 7 days
-    const urgent = active.filter(ob => {
+    // Needs attention: high priority OR overdue OR due within 7 days
+    const needsAttention = active.filter(ob => {
       const status = getDueDateStatus(ob.deadline);
       return ob.riskLevel === 'high' || status === 'overdue' || status === 'due-soon';
     });
 
-    // Upcoming: due date > 7 days (and not already in urgent)
-    const urgentIds = new Set(urgent.map(ob => ob.id));
+    // Upcoming: due date > 7 days (and not already in needs attention)
+    const needsAttentionIds = new Set(needsAttention.map(ob => ob.id));
     const upcoming = active.filter(ob => {
       const status = getDueDateStatus(ob.deadline);
-      return !urgentIds.has(ob.id) && status === 'upcoming';
+      return !needsAttentionIds.has(ob.id) && status === 'upcoming';
     });
 
-    // No due date: null deadline (and not in urgent due to high risk)
+    // No due date: null deadline (and not in needs attention due to high priority)
     const upcomingIds = new Set(upcoming.map(ob => ob.id));
     const noDueDate = active.filter(
-      ob => !urgentIds.has(ob.id) && !upcomingIds.has(ob.id) && !ob.deadline
+      ob => !needsAttentionIds.has(ob.id) && !upcomingIds.has(ob.id) && !ob.deadline
     );
 
-    // Sort urgent: overdue first, then highest risk, then soonest due date
-    urgent.sort((a, b) => {
+    // Sort needs attention: overdue first, then highest priority, then soonest due date
+    needsAttention.sort((a, b) => {
       const statusA = getDueDateStatus(a.deadline);
       const statusB = getDueDateStatus(b.deadline);
       
@@ -64,9 +64,9 @@ export function GroupedTimeline({
       if (statusA === 'overdue' && statusB !== 'overdue') return -1;
       if (statusB === 'overdue' && statusA !== 'overdue') return 1;
       
-      // Then by risk
-      const riskDiff = riskOrder[a.riskLevel] - riskOrder[b.riskLevel];
-      if (riskDiff !== 0) return riskDiff;
+      // Then by priority
+      const priorityDiff = priorityOrder[a.riskLevel] - priorityOrder[b.riskLevel];
+      if (priorityDiff !== 0) return priorityDiff;
       
       // Then by due date
       const daysA = getDaysUntilDue(a.deadline) ?? 999;
@@ -82,39 +82,39 @@ export function GroupedTimeline({
     });
 
     // Sort no due date: high → medium → low
-    noDueDate.sort((a, b) => riskOrder[a.riskLevel] - riskOrder[b.riskLevel]);
+    noDueDate.sort((a, b) => priorityOrder[a.riskLevel] - priorityOrder[b.riskLevel]);
 
     // Sort completed: most recently updated first
     completed.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
     return [
       {
-        id: 'urgent',
-        title: 'Urgent',
-        icon: <AlertTriangle className="w-4 h-4" />,
-        obligations: urgent,
-        emptyMessage: 'No urgent items',
+        id: 'needs-attention',
+        title: 'Needs Attention',
+        icon: <Star className="w-4 h-4" />,
+        obligations: needsAttention,
+        emptyMessage: 'Nothing needs immediate attention',
       },
       {
         id: 'upcoming',
-        title: 'Upcoming',
+        title: 'Coming Up',
         icon: <Calendar className="w-4 h-4" />,
         obligations: upcoming,
         emptyMessage: 'No upcoming deadlines',
       },
       {
         id: 'no-due-date',
-        title: 'No due date',
+        title: 'When You Have Time',
         icon: <Clock className="w-4 h-4" />,
         obligations: noDueDate,
-        emptyMessage: 'No items without dates',
+        emptyMessage: 'No flexible items',
       },
       {
         id: 'completed',
         title: 'Completed',
         icon: <CheckCircle2 className="w-4 h-4" />,
         obligations: completed.slice(0, 5), // Show only recent 5
-        emptyMessage: 'No completed items',
+        emptyMessage: 'No completed items yet',
       },
     ];
   }, [obligations]);
@@ -159,12 +159,12 @@ export function GroupedTimeline({
             
             <div className={cn(
               'flex items-center gap-3 text-sm font-medium relative',
-              group.id === 'urgent' ? 'text-[hsl(var(--risk-high))]' : 'text-muted-foreground'
+              group.id === 'needs-attention' ? 'text-[hsl(var(--priority-high))]' : 'text-muted-foreground'
             )}>
               {/* Timeline dot for section */}
               <div className={cn(
                 'timeline-dot',
-                group.id === 'urgent' && 'timeline-dot-high',
+                group.id === 'needs-attention' && 'timeline-dot-high',
                 group.id === 'upcoming' && 'timeline-dot-medium',
                 group.id === 'no-due-date' && 'timeline-dot-low',
                 isCompleted && 'timeline-dot-completed'

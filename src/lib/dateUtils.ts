@@ -32,11 +32,16 @@ export function getDaysUntilDue(deadline: Date | null): number | null {
   return Math.ceil((dueDateOnly.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-export function formatDueStatus(deadline: Date | null): string {
+export function formatDueStatus(deadline: Date | null, calm = false): string {
   const days = getDaysUntilDue(deadline);
   
   if (days === null) return 'No due date';
-  if (days < 0) return `${Math.abs(days)} day${Math.abs(days) !== 1 ? 's' : ''} overdue`;
+  if (days < 0) {
+    const absDays = Math.abs(days);
+    return calm 
+      ? `${absDays} day${absDays !== 1 ? 's' : ''} past due date`
+      : `${absDays} day${absDays !== 1 ? 's' : ''} overdue`;
+  }
   if (days === 0) return 'Due today';
   if (days === 1) return 'Due tomorrow';
   if (days <= 7) return `Due in ${days} days`;

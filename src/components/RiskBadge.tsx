@@ -1,22 +1,22 @@
-import { RiskLevel } from '@/types/obligation';
+import { PriorityLevel } from '@/types/obligation';
 import { cn } from '@/lib/utils';
 
 interface RiskBadgeProps {
-  level: RiskLevel;
+  level: PriorityLevel;
   className?: string;
 }
 
 const riskConfig = {
   low: {
-    label: 'Low Risk',
+    label: 'Low Priority',
     className: 'risk-badge-low',
   },
   medium: {
-    label: 'Medium Risk',
+    label: 'Medium Priority',
     className: 'risk-badge-medium',
   },
   high: {
-    label: 'High Risk',
+    label: 'High Priority',
     className: 'risk-badge-high',
   },
 };

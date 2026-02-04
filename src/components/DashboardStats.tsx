@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Obligation } from '@/types/obligation';
 import { getDueDateStatus } from '@/lib/dateUtils';
-import { CheckCircle2, AlertCircle, Clock } from 'lucide-react';
+import { CheckCircle2, Clock, Star } from 'lucide-react';
 
 interface DashboardStatsProps {
   obligations: Obligation[];
@@ -13,11 +13,11 @@ export function DashboardStats({ obligations, className = '' }: DashboardStatsPr
     const now = new Date();
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const overdue = obligations.filter(
+    const needsAttention = obligations.filter(
       (ob) => ob.status !== 'completed' && getDueDateStatus(ob.deadline) === 'overdue'
     ).length;
 
-    const dueSoon = obligations.filter(
+    const comingUp = obligations.filter(
       (ob) => ob.status !== 'completed' && getDueDateStatus(ob.deadline) === 'due-soon'
     ).length;
 
@@ -28,7 +28,7 @@ export function DashboardStats({ obligations, className = '' }: DashboardStatsPr
         new Date(ob.updatedAt) >= weekAgo
     ).length;
 
-    return { overdue, dueSoon, completedThisWeek };
+    return { needsAttention, comingUp, completedThisWeek };
   }, [obligations]);
 
   return (
@@ -38,25 +38,25 @@ export function DashboardStats({ obligations, className = '' }: DashboardStatsPr
       aria-label="At a glance"
     >
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--risk-high-bg))]">
-          <AlertCircle className="h-4 w-4 text-[hsl(var(--risk-high))]" />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--priority-high-bg))]">
+          <Star className="h-4 w-4 text-[hsl(var(--priority-high))]" />
         </div>
         <div>
-          <p className="text-lg font-semibold tabular-nums text-foreground">{stats.overdue}</p>
-          <p className="text-xs text-muted-foreground">Overdue</p>
+          <p className="text-lg font-semibold tabular-nums text-foreground">{stats.needsAttention}</p>
+          <p className="text-xs text-muted-foreground">Needs attention</p>
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--risk-medium-bg))]">
-          <Clock className="h-4 w-4 text-[hsl(var(--risk-medium))]" />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--priority-medium-bg))]">
+          <Clock className="h-4 w-4 text-[hsl(var(--priority-medium))]" />
         </div>
         <div>
-          <p className="text-lg font-semibold tabular-nums text-foreground">{stats.dueSoon}</p>
-          <p className="text-xs text-muted-foreground">Due soon</p>
+          <p className="text-lg font-semibold tabular-nums text-foreground">{stats.comingUp}</p>
+          <p className="text-xs text-muted-foreground">Coming up</p>
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--risk-low-bg))]">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[hsl(var(--priority-low-bg))]">
           <CheckCircle2 className="h-4 w-4 text-[hsl(var(--status-completed))]" />
         </div>
         <div>
