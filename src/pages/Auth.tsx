@@ -144,35 +144,47 @@ export default function Auth() {
 
           {/* Tagline */}
           <h2 className="text-3xl font-semibold text-foreground mb-4 leading-tight">
-            Deadlines. Appointments. Timetables.<br />All in one calm place.
+            Every deadline.<br />Every step to get there.
           </h2>
           
-          <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            If it has a due date, we track it. Upload any document and let AI extract every deadline—then get reminded exactly when you need to act.
+          <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
+            Upload any document—assignments, appointments, contracts, bills. AI extracts every deadline and breaks it into clear steps so you always know exactly what to do next.
           </p>
 
           {/* What it does */}
           <div className="bg-card/60 rounded-xl p-5 mb-6 border border-border/50">
-            <p className="text-sm font-medium text-foreground mb-3">How it works:</p>
-            <ol className="space-y-3 text-sm">
+            <p className="text-sm font-medium text-foreground mb-3">What you get:</p>
+            <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-medium">1</span>
-                <span className="text-muted-foreground"><span className="text-foreground font-medium">Upload</span> any document—syllabus, contract, letter, screenshot</span>
+                <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-primary text-xs">📄</span>
+                </div>
+                <span className="text-muted-foreground"><span className="text-foreground font-medium">Smart extraction</span> — Deadlines, due dates & requirements pulled from any document</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-medium">2</span>
-                <span className="text-muted-foreground"><span className="text-foreground font-medium">AI extracts</span> every deadline, due date, and obligation</span>
+                <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-primary text-xs">✓</span>
+                </div>
+                <span className="text-muted-foreground"><span className="text-foreground font-medium">Step-by-step guidance</span> — Clear action items to complete each task</span>
               </li>
               <li className="flex items-start gap-3">
-                <span className="w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center flex-shrink-0 mt-0.5 font-medium">3</span>
-                <span className="text-muted-foreground"><span className="text-foreground font-medium">Get reminded</span> at the right time, without the stress</span>
+                <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-primary text-xs">🔔</span>
+                </div>
+                <span className="text-muted-foreground"><span className="text-foreground font-medium">Timely reminders</span> — Get nudged at the right time, not too early, not too late</span>
               </li>
-            </ol>
+              <li className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-primary text-xs">📅</span>
+                </div>
+                <span className="text-muted-foreground"><span className="text-foreground font-medium">Calendar view</span> — See everything at a glance, organized by priority</span>
+              </li>
+            </ul>
           </div>
 
           {/* Use cases */}
           <p className="text-xs text-muted-foreground">
-            <span className="font-medium text-foreground/80">Works for:</span> Assignments, exams, visa renewals, bills, appointments, subscriptions, contracts—anything with a deadline.
+            <span className="font-medium text-foreground/80">Works for:</span> Uni assignments, exam schedules, visa renewals, doctor appointments, tax deadlines, bills, contracts—anything that needs action.
           </p>
         </div>
       </div>
@@ -200,12 +212,12 @@ export default function Auth() {
             {/* Mobile Value Prop */}
             <div className="lg:hidden mb-6 sm:mb-8 text-center">
               <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
-                {isLogin ? 'Welcome back' : 'Never miss a deadline again'}
+                {isLogin ? 'Welcome back' : 'Every deadline. Every step.'}
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground">
                 {isLogin 
                   ? "I've been keeping track of things for you." 
-                  : "Assignments, appointments, bills, renewals—upload any document and we'll guide you through every deadline."}
+                  : "Upload any document. Get deadlines, action steps, and reminders—so you always know what to do next."}
               </p>
             </div>
 
