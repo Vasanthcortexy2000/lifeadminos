@@ -59,10 +59,13 @@ export function WeeklySummary({ obligations, className }: WeeklySummaryProps) {
   }
   
   return (
-    <div className={cn('card-calm p-6', className)}>
+    <section 
+      className={cn('card-calm p-4 sm:p-6', className)}
+      aria-labelledby="weekly-summary-heading"
+    >
       <div className="flex items-center gap-2 mb-4">
-        <Sparkles className="w-4 h-4 text-primary" />
-        <h3 className="text-sm font-medium text-foreground">This week</h3>
+        <Sparkles className="w-4 h-4 text-primary" aria-hidden="true" />
+        <h3 id="weekly-summary-heading" className="text-sm font-medium text-foreground">This week</h3>
       </div>
       
       {summary.focus.length > 0 && (
@@ -70,40 +73,43 @@ export function WeeklySummary({ obligations, className }: WeeklySummaryProps) {
           <p className="text-sm text-muted-foreground mb-3">
             Focus on {summary.focus.length === 1 ? 'this' : `these ${summary.focus.length} things`}:
           </p>
-          <ul className="space-y-2">
+          <ol className="space-y-2" role="list" aria-label="Priority items for this week">
             {summary.focus.map((ob, index) => (
               <li 
                 key={ob.id}
                 className="flex items-start gap-2 text-sm"
               >
-                <span className={cn(
-                  'flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium',
-                  getDueDateStatus(ob.deadline) === 'overdue' 
-                    ? 'bg-[hsl(var(--risk-high-bg))] text-[hsl(var(--risk-high))]'
-                    : 'bg-secondary text-secondary-foreground'
-                )}>
+                <span 
+                  className={cn(
+                    'flex-shrink-0 w-6 h-6 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-xs font-medium',
+                    getDueDateStatus(ob.deadline) === 'overdue' 
+                      ? 'bg-[hsl(var(--risk-high-bg))] text-[hsl(var(--risk-high))]'
+                      : 'bg-secondary text-secondary-foreground'
+                  )}
+                  aria-hidden="true"
+                >
                   {index + 1}
                 </span>
-                <span className="text-foreground">{ob.title}</span>
+                <span className="text-foreground line-clamp-2">{ob.title}</span>
               </li>
             ))}
-          </ul>
+          </ol>
         </div>
       )}
       
       {summary.canWait.length > 0 && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <Clock className="w-3.5 h-3.5" />
+          <Clock className="w-4 h-4 sm:w-3.5 sm:h-3.5 flex-shrink-0" aria-hidden="true" />
           <span>{summary.canWait.length} item{summary.canWait.length !== 1 ? 's' : ''} can wait</span>
         </div>
       )}
       
       {summary.recentlyCompleted.length > 0 && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <CheckCircle2 className="w-3.5 h-3.5 text-[hsl(var(--status-completed))]" />
+          <CheckCircle2 className="w-4 h-4 sm:w-3.5 sm:h-3.5 text-[hsl(var(--status-completed))] flex-shrink-0" aria-hidden="true" />
           <span>{summary.recentlyCompleted.length} completed this week</span>
         </div>
       )}
-    </div>
+    </section>
   );
 }

@@ -83,10 +83,10 @@ function detectTopic(ob: Obligation): string {
 function getSubjectIcon(subject: string): React.ReactNode {
   const s = subject.toLowerCase();
   if (s.includes('comp') || s.includes('study') || /^[A-Z]{2,4}\d{4}$/.test(subject)) {
-    return <GraduationCap className="w-4 h-4" />;
+    return <GraduationCap className="w-4 h-4" aria-hidden="true" />;
   }
-  if (s === 'work') return <Briefcase className="w-4 h-4" />;
-  return <BookOpen className="w-4 h-4" />;
+  if (s === 'work') return <Briefcase className="w-4 h-4" aria-hidden="true" />;
+  return <BookOpen className="w-4 h-4" aria-hidden="true" />;
 }
 
 export function GroupedBySubject({ 
@@ -174,9 +174,9 @@ export function GroupedBySubject({
   }
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn('space-y-4', className)} role="region" aria-label="Obligations grouped by subject">
       <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mb-2">
-        <Folder className="w-4 h-4" />
+        <Folder className="w-4 h-4" aria-hidden="true" />
         <span>Grouped by Subject</span>
       </div>
       
@@ -190,28 +190,34 @@ export function GroupedBySubject({
             onOpenChange={() => toggleSubject(group.subject)}
             className="border border-border rounded-lg bg-card overflow-hidden"
           >
-            <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-accent/50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-secondary">
+            <CollapsibleTrigger 
+              className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-accent/50 transition-colors min-h-[56px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+              aria-expanded={isExpanded}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 rounded-lg bg-secondary flex-shrink-0">
                   {group.icon}
                 </div>
-                <div className="text-left">
-                  <h3 className="font-medium text-foreground">{group.subject}</h3>
+                <div className="text-left min-w-0">
+                  <h3 className="font-medium text-foreground truncate">{group.subject}</h3>
                   <p className="text-xs text-muted-foreground">
                     {group.pendingCount} pending · {group.topics.length} {group.topics.length === 1 ? 'topic' : 'topics'}
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                 {group.pendingCount > 0 && (
-                  <Badge variant="secondary" className="bg-[hsl(var(--priority-medium-bg))] text-[hsl(var(--priority-medium))]">
+                  <Badge 
+                    variant="secondary" 
+                    className="bg-[hsl(var(--priority-medium-bg))] text-[hsl(var(--priority-medium))] hidden sm:flex"
+                  >
                     {group.pendingCount} pending
                   </Badge>
                 )}
                 {isExpanded ? (
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  <ChevronDown className="w-5 h-5 sm:w-4 sm:h-4 text-muted-foreground" aria-hidden="true" />
                 ) : (
-                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  <ChevronRight className="w-5 h-5 sm:w-4 sm:h-4 text-muted-foreground" aria-hidden="true" />
                 )}
               </div>
             </CollapsibleTrigger>
@@ -219,12 +225,12 @@ export function GroupedBySubject({
             <CollapsibleContent>
               <div className="border-t border-border">
                 {group.topics.map(topic => (
-                  <div key={topic.topic} className="p-4 border-b border-border last:border-b-0">
+                  <div key={topic.topic} className="p-3 sm:p-4 border-b border-border last:border-b-0">
                     <h4 className="text-sm font-medium text-muted-foreground mb-3 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground" aria-hidden="true" />
                       {topic.topic}
                     </h4>
-                    <div className="space-y-3 ml-3">
+                    <div className="space-y-3 sm:ml-3">
                       {topic.obligations.map(ob => (
                         <ObligationCard
                           key={ob.id}

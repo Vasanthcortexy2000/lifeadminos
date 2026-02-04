@@ -444,13 +444,13 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
     <>
       <div className={cn('space-y-4', className)}>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="upload" className="gap-2">
-              <Upload className="w-4 h-4" />
+          <TabsList className="grid w-full grid-cols-2 h-12 sm:h-10">
+            <TabsTrigger value="upload" className="gap-2 text-sm min-h-[44px] sm:min-h-0">
+              <Upload className="w-4 h-4" aria-hidden="true" />
               Upload file
             </TabsTrigger>
-            <TabsTrigger value="paste" className="gap-2">
-              <ClipboardPaste className="w-4 h-4" />
+            <TabsTrigger value="paste" className="gap-2 text-sm min-h-[44px] sm:min-h-0">
+              <ClipboardPaste className="w-4 h-4" aria-hidden="true" />
               Paste text
             </TabsTrigger>
           </TabsList>
@@ -461,23 +461,35 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               className={cn(
-                'relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 cursor-pointer',
+                'relative border-2 border-dashed rounded-xl p-6 sm:p-8 text-center transition-all duration-300 cursor-pointer',
+                'focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
                 isDragOver
                   ? 'border-primary bg-accent'
                   : 'border-border hover:border-primary/50 hover:bg-accent/50'
               )}
+              role="button"
+              tabIndex={0}
+              aria-label="Upload area. Drop files here or click to browse"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  document.getElementById('file-upload-input')?.click();
+                }
+              }}
             >
               <input
+                id="file-upload-input"
                 type="file"
                 multiple
                 accept=".pdf,.png,.jpg,.jpeg,.doc,.docx,.txt"
                 onChange={handleFileSelect}
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                aria-label="Choose files to upload"
               />
               
               <div className="flex flex-col items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center">
-                  <Upload className="w-5 h-5 text-muted-foreground" />
+                  <Upload className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">
@@ -506,10 +518,11 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
                     </span>
                     <button
                       onClick={() => removeFile(index)}
-                      className="p-1 hover:bg-accent rounded transition-colors"
+                      className="p-2 hover:bg-accent rounded transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       disabled={isProcessing}
+                      aria-label={`Remove ${file.name}`}
                     >
-                      <X className="w-4 h-4 text-muted-foreground" />
+                      <X className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
                     </button>
                   </div>
                 ))}
@@ -519,13 +532,13 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
             <Button
               onClick={handleProcessUploadedFiles}
               disabled={isProcessing}
-              className="w-full"
+              className="w-full min-h-[48px]"
               size="lg"
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Analysing your document…
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                  <span>Analysing your document…</span>
                 </>
               ) : (
                 'Process document'
@@ -535,24 +548,32 @@ export function DocumentUpload({ onUpload, onObligationsSaved, className }: Docu
 
           <TabsContent value="paste" className="space-y-4 mt-4">
             <div className="space-y-3">
-              <Input
-                placeholder="Document name (optional)"
-                value={pastedDocName}
-                onChange={(e) => setPastedDocName(e.target.value)}
-                className="w-full"
-              />
-              <Textarea
-                placeholder="Paste your document text here...
+              <div>
+                <label htmlFor="paste-doc-name" className="sr-only">Document name (optional)</label>
+                <Input
+                  id="paste-doc-name"
+                  placeholder="Document name (optional)"
+                  value={pastedDocName}
+                  onChange={(e) => setPastedDocName(e.target.value)}
+                  className="w-full min-h-[44px]"
+                />
+              </div>
+              <div>
+                <label htmlFor="paste-doc-text" className="sr-only">Paste your document text here</label>
+                <Textarea
+                  id="paste-doc-text"
+                  placeholder="Paste your document text here...
 
 Copy the full text from your letter, contract, or email and paste it here. This works best for:
 • Offer letters and employment contracts
 • Official correspondence
 • Policy documents
 • Any text-based document"
-                value={pastedText}
-                onChange={(e) => setPastedText(e.target.value)}
-                className="min-h-[200px] resize-none"
-              />
+                  value={pastedText}
+                  onChange={(e) => setPastedText(e.target.value)}
+                  className="min-h-[200px] resize-none"
+                />
+              </div>
               <p className="text-xs text-muted-foreground">
                 Tip: Open your PDF, select all text (Ctrl+A / Cmd+A), copy (Ctrl+C / Cmd+C), and paste above.
               </p>
@@ -561,13 +582,13 @@ Copy the full text from your letter, contract, or email and paste it here. This 
             <Button
               onClick={handleProcessPastedText}
               disabled={isProcessing}
-              className="w-full"
+              className="w-full min-h-[48px]"
               size="lg"
             >
               {isProcessing ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Analysing your document…
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                  <span>Analysing your document…</span>
                 </>
               ) : (
                 'Process text'
