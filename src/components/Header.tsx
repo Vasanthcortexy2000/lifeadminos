@@ -1,4 +1,4 @@
-import { Shield, LogOut, LayoutDashboard, Upload } from 'lucide-react';
+import { Shield, LogOut, LayoutDashboard, Upload, Calendar } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ export function Header() {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const isDashboard = location.pathname === '/';
+  const isCalendar = location.pathname === '/calendar';
 
   return (
     <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
@@ -39,6 +40,18 @@ export function Header() {
                   Dashboard
                 </Link>
                 <Link
+                  to="/calendar"
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                    isCalendar
+                      ? 'bg-secondary text-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  )}
+                >
+                  <Calendar className="w-4 h-4" />
+                  Calendar
+                </Link>
+                <Link
                   to="/#add-documents"
                   className={cn(
                     'inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors',
@@ -48,7 +61,7 @@ export function Header() {
                   )}
                 >
                   <Upload className="w-4 h-4" />
-                  Upload documents
+                  Upload
                 </Link>
               </nav>
             )}
