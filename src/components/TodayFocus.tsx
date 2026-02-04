@@ -45,17 +45,20 @@ export function TodayFocus({ obligations, className }: TodayFocusProps) {
   // Don't show if nothing to focus on
   if (focusItems.length === 0) {
     return (
-      <div className={cn('p-5 bg-card rounded-xl border border-border/50', className)}>
+      <section 
+        className={cn('p-4 sm:p-5 bg-card rounded-xl border border-border/50', className)}
+        aria-labelledby="focus-heading-empty"
+      >
         <div className="flex items-center gap-2 mb-3">
-          <Heart className="w-5 h-5 text-primary" />
-          <h3 className="text-base font-medium text-foreground">
+          <Heart className="w-5 h-5 text-primary" aria-hidden="true" />
+          <h2 id="focus-heading-empty" className="text-base font-medium text-foreground">
             You're all caught up
-          </h3>
+          </h2>
         </div>
         <p className="text-sm text-muted-foreground">
           Nothing needs your attention right now. Take a moment for yourself.
         </p>
-      </div>
+      </section>
     );
   }
 
@@ -96,39 +99,45 @@ export function TodayFocus({ obligations, className }: TodayFocusProps) {
   };
 
   return (
-    <div className={cn('p-5 bg-card rounded-xl border border-border/50', className)}>
+    <section 
+      className={cn('p-4 sm:p-5 bg-card rounded-xl border border-border/50', className)}
+      aria-labelledby="focus-heading"
+    >
       <div className="flex items-center gap-2 mb-4">
-        <CheckCircle2 className="w-5 h-5 text-primary" />
-        <h3 className="text-base font-medium text-foreground">
+        <CheckCircle2 className="w-5 h-5 text-primary" aria-hidden="true" />
+        <h2 id="focus-heading" className="text-base font-medium text-foreground">
           {getMessage()}
-        </h3>
+        </h2>
       </div>
 
-      <div className="space-y-3">
+      <ul className="space-y-3" role="list" aria-label="Focus items for today">
         {focusItems.map((item, index) => (
-          <div 
+          <li 
             key={item.id}
-            className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50"
+            className="flex items-start gap-3 p-3 sm:p-3 rounded-lg bg-secondary/50"
           >
-            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
+            <span 
+              className="flex-shrink-0 w-7 h-7 sm:w-6 sm:h-6 rounded-full bg-muted flex items-center justify-center text-sm sm:text-xs font-medium text-muted-foreground"
+              aria-hidden="true"
+            >
               {index + 1}
-            </div>
+            </span>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="text-sm font-medium text-foreground line-clamp-2">
                 {item.title}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 {getPriorityLabel(item.riskLevel, item.deadline)}
               </p>
             </div>
-            <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          </div>
+            <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" aria-hidden="true" />
+          </li>
         ))}
-      </div>
+      </ul>
 
-      <p className="text-xs text-muted-foreground mt-4">
+      <p className="text-xs text-muted-foreground mt-4" role="status">
         {getReassuranceMessage()}
       </p>
-    </div>
+    </section>
   );
 }
