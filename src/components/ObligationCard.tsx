@@ -6,7 +6,7 @@ import { ConfidenceBadge } from './ConfidenceBadge';
 import { DomainBadge, DomainSelector, LifeDomain } from './LifeDomain';
 import { RescheduleDialog } from './RescheduleDialog';
 import { EvidenceAttachment } from './EvidenceAttachment';
-import { ShareObligation } from './ShareObligation';
+
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { getDueDateStatus } from '@/lib/dateUtils';
@@ -43,13 +43,6 @@ interface Evidence {
   uploaded_at: string;
 }
 
-interface Share {
-  id: string;
-  share_token: string;
-  created_at: string;
-  expires_at: string | null;
-  revoked: boolean;
-}
 
 interface ObligationCardProps {
   obligation: Obligation;
@@ -106,7 +99,7 @@ export function ObligationCard({
 
   // Evidence and sharing state
   const [evidence, setEvidence] = useState<Evidence[]>([]);
-  const [shares, setShares] = useState<Share[]>([]);
+  
   const { user } = useAuth();
 
   const hasSteps = localSteps.length > 0;
@@ -120,30 +113,22 @@ export function ObligationCard({
     setLocalSteps(obligation.steps || []);
   }, [obligation.steps]);
 
-  // Fetch evidence and shares
-  const fetchEvidenceAndShares = useCallback(async () => {
+  // Fetch evidence
+  const fetchEvidence = useCallback(async () => {
     if (!user) return;
 
-    const [evidenceResult, sharesResult] = await Promise.all([
-      supabase
-        .from('obligation_evidence')
-        .select('*')
-        .eq('obligation_id', obligation.id)
-        .eq('user_id', user.id),
-      supabase
-        .from('obligation_shares')
-        .select('*')
-        .eq('obligation_id', obligation.id)
-        .eq('user_id', user.id),
-    ]);
+    const { data } = await supabase
+      .from('obligation_evidence')
+      .select('*')
+      .eq('obligation_id', obligation.id)
+      .eq('user_id', user.id);
 
-    if (evidenceResult.data) setEvidence(evidenceResult.data);
-    if (sharesResult.data) setShares(sharesResult.data);
+    if (data) setEvidence(data);
   }, [user, obligation.id]);
 
   useEffect(() => {
-    fetchEvidenceAndShares();
-  }, [fetchEvidenceAndShares]);
+    fetchEvidence();
+  }, [fetchEvidence]);
 
   const handleStatusChange = async (value: string) => {
     if (onStatusChange) {
@@ -463,13 +448,7 @@ export function ObligationCard({
             <EvidenceAttachment 
               obligationId={obligation.id}
               evidence={evidence}
-              onEvidenceChange={fetchEvidenceAndShares}
-            />
-            <ShareObligation 
-              obligationId={obligation.id}
-              obligationTitle={obligation.title}
-              existingShares={shares}
-              onShareChange={fetchEvidenceAndShares}
+              onEvidenceChange={fetchEvidence}
             />
             {googleCalUrl && (
               <a
