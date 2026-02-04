@@ -1,8 +1,13 @@
+# Life Admin OS - robots.txt
+# https://lifeadminos.lovable.app
+
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Twitterbot
 Allow: /
@@ -12,3 +17,7 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /shared/
+
+# Sitemap location
+Sitemap: https://lifeadminos.lovable.app/sitemap.xml
