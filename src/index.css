@@ -32,16 +32,24 @@
     --accent: 40 20% 91%;
     --accent-foreground: 220 15% 25%;
 
-    /* Risk levels - soft, muted colors */
+    /* Priority levels - soft, muted colors */
     /* Low: sage green */
-    --risk-low: 145 25% 42%;
-    --risk-low-bg: 145 30% 94%;
+    --priority-low: 145 25% 42%;
+    --priority-low-bg: 145 30% 94%;
     /* Medium: soft amber */
-    --risk-medium: 38 60% 50%;
-    --risk-medium-bg: 38 50% 94%;
-    /* High: muted coral */
-    --risk-high: 8 50% 55%;
-    --risk-high-bg: 8 45% 95%;
+    --priority-medium: 38 60% 50%;
+    --priority-medium-bg: 38 50% 94%;
+    /* High: muted coral (calm, not alarming) */
+    --priority-high: 8 45% 52%;
+    --priority-high-bg: 8 40% 96%;
+    
+    /* Backwards compatibility aliases */
+    --risk-low: var(--priority-low);
+    --risk-low-bg: var(--priority-low-bg);
+    --risk-medium: var(--priority-medium);
+    --risk-medium-bg: var(--priority-medium-bg);
+    --risk-high: var(--priority-high);
+    --risk-high-bg: var(--priority-high-bg);
 
     /* Status colors */
     --status-not-started: 220 12% 70%;
@@ -94,12 +102,20 @@
     --accent: 220 16% 20%;
     --accent-foreground: 40 12% 88%;
 
-    --risk-low: 145 30% 50%;
-    --risk-low-bg: 145 20% 16%;
-    --risk-medium: 38 55% 55%;
-    --risk-medium-bg: 38 40% 16%;
-    --risk-high: 8 45% 58%;
-    --risk-high-bg: 8 35% 16%;
+    --priority-low: 145 30% 50%;
+    --priority-low-bg: 145 20% 16%;
+    --priority-medium: 38 55% 55%;
+    --priority-medium-bg: 38 40% 16%;
+    --priority-high: 8 40% 55%;
+    --priority-high-bg: 8 30% 18%;
+    
+    /* Backwards compatibility aliases */
+    --risk-low: var(--priority-low);
+    --risk-low-bg: var(--priority-low-bg);
+    --risk-medium: var(--priority-medium);
+    --risk-medium-bg: var(--priority-medium-bg);
+    --risk-high: var(--priority-high);
+    --risk-high-bg: var(--priority-high-bg);
 
     --destructive: 8 45% 55%;
     --destructive-foreground: 0 0% 100%;
@@ -140,22 +156,25 @@
     box-shadow: var(--shadow-elevated);
   }
 
+  .priority-badge-low,
   .risk-badge-low {
     @apply text-xs font-medium px-2.5 py-1 rounded-full;
-    background-color: hsl(var(--risk-low-bg));
-    color: hsl(var(--risk-low));
+    background-color: hsl(var(--priority-low-bg));
+    color: hsl(var(--priority-low));
   }
 
+  .priority-badge-medium,
   .risk-badge-medium {
     @apply text-xs font-medium px-2.5 py-1 rounded-full;
-    background-color: hsl(var(--risk-medium-bg));
-    color: hsl(var(--risk-medium));
+    background-color: hsl(var(--priority-medium-bg));
+    color: hsl(var(--priority-medium));
   }
 
+  .priority-badge-high,
   .risk-badge-high {
     @apply text-xs font-medium px-2.5 py-1 rounded-full;
-    background-color: hsl(var(--risk-high-bg));
-    color: hsl(var(--risk-high));
+    background-color: hsl(var(--priority-high-bg));
+    color: hsl(var(--priority-high));
   }
 
   .status-indicator {
@@ -190,15 +209,15 @@
   }
 
   .timeline-dot-low {
-    background-color: hsl(var(--risk-low));
+    background-color: hsl(var(--priority-low));
   }
 
   .timeline-dot-medium {
-    background-color: hsl(var(--risk-medium));
+    background-color: hsl(var(--priority-medium));
   }
 
   .timeline-dot-high {
-    background-color: hsl(var(--risk-high));
+    background-color: hsl(var(--priority-high));
   }
 
   .timeline-dot-completed {

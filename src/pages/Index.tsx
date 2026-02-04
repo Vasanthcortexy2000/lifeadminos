@@ -3,27 +3,33 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { DocumentUpload } from '@/components/DocumentUpload';
 import { GroupedTimeline } from '@/components/GroupedTimeline';
+import { GroupedBySubject } from '@/components/GroupedBySubject';
 import { WeeklySummary } from '@/components/WeeklySummary';
 import { NudgesPanel } from '@/components/NudgesPanel';
 import { UrgentNudgeBanner } from '@/components/UrgentNudgeBanner';
 import { ReminderBanner } from '@/components/ReminderBanner';
 import { TodayFocus } from '@/components/TodayFocus';
 import { ReminderPreferencesDialog } from '@/components/ReminderPreferencesDialog';
-import { DomainFilter, LifeDomain, LIFE_DOMAINS } from '@/components/LifeDomain';
+import { DomainFilter, LifeDomain } from '@/components/LifeDomain';
 import { EmptyState } from '@/components/EmptyState';
 import { DashboardStats } from '@/components/DashboardStats';
 import { useAuth } from '@/contexts/AuthContext';
 import { useObligations } from '@/hooks/useObligations';
 import { useNudges } from '@/hooks/useNudges';
+import { useStressAwareness } from '@/hooks/useStressAwareness';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { FileText } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FileText, List, Folder } from 'lucide-react';
+
+type ViewMode = 'timeline' | 'subject';
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedDomains, setSelectedDomains] = useState<LifeDomain[]>([]);
+  const [viewMode, setViewMode] = useState<ViewMode>('timeline');
   const { 
     obligations, 
     loading: obligationsLoading, 
@@ -33,6 +39,7 @@ const Index = () => {
     refetch 
   } = useObligations();
   const { nudges, dismissNudge } = useNudges();
+  const { isStressed, reassurance } = useStressAwareness(obligations);
 
   // Filter obligations by domain
   const filteredObligations = selectedDomains.length > 0
@@ -108,10 +115,10 @@ const Index = () => {
         <div className="mb-6 animate-fade-in flex items-start justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-foreground mb-2">
-              I have your back.
+              {isStressed ? "Let's take this step by step." : "I have your back."}
             </h2>
             <p className="text-muted-foreground">
-              You don't need to remember everything. I will.
+              {isStressed ? reassurance : "You don't need to remember everything. I will."}
             </p>
           </div>
           <ReminderPreferencesDialog />
@@ -175,12 +182,26 @@ const Index = () => {
               <DocumentUpload onUpload={handleUpload} onObligationsSaved={refetch} />
             </section>
 
-            {/* Domain Filter */}
+            {/* Filters and View Toggle */}
             {!obligationsLoading && obligations.length > 0 && (
-              <section className="animate-slide-up" style={{ animationDelay: '150ms' }}>
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
-                  Filter by area
-                </h3>
+              <section className="animate-slide-up space-y-4" style={{ animationDelay: '150ms' }}>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                    Filter by area
+                  </h3>
+                  <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                    <TabsList className="h-8">
+                      <TabsTrigger value="timeline" className="h-7 px-3 text-xs gap-1.5">
+                        <List className="w-3.5 h-3.5" />
+                        Timeline
+                      </TabsTrigger>
+                      <TabsTrigger value="subject" className="h-7 px-3 text-xs gap-1.5">
+                        <Folder className="w-3.5 h-3.5" />
+                        By Subject
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </div>
                 <DomainFilter 
                   selectedDomains={selectedDomains} 
                   onChange={setSelectedDomains} 
@@ -188,7 +209,7 @@ const Index = () => {
               </section>
             )}
 
-            {/* Timeline */}
+            {/* Timeline or Subject View */}
             <section 
               className="animate-slide-up" 
               style={{ animationDelay: '200ms' }}
@@ -200,8 +221,15 @@ const Index = () => {
                   <Skeleton className="h-24 w-full" />
                   <Skeleton className="h-24 w-full" />
                 </div>
-              ) : (
+              ) : viewMode === 'timeline' ? (
                 <GroupedTimeline
+                  obligations={filteredObligations}
+                  onStatusChange={updateStatus}
+                  onUpdate={updateObligation}
+                  onDelete={deleteObligation}
+                />
+              ) : (
+                <GroupedBySubject
                   obligations={filteredObligations}
                   onStatusChange={updateStatus}
                   onUpdate={updateObligation}

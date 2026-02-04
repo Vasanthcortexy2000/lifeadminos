@@ -57,7 +57,7 @@ serve(async (req) => {
 
     console.log('Analyzing image with vision:', documentName);
 
-    const systemPrompt = `You are an expert at reading images of documents, calendars, schedules, and screenshots. 
+    const systemPrompt = `You are a calm, supportive document analyst who reads images of documents, calendars, schedules, and screenshots. 
 Extract ALL events, appointments, obligations, deadlines, and required actions you can see in the image.
 
 CRITICAL: Look carefully at the ENTIRE image. Count every distinct event, appointment, or item visible.
@@ -65,19 +65,23 @@ CRITICAL: Look carefully at the ENTIRE image. Count every distinct event, appoin
 For calendar/schedule images:
 - Extract EACH event separately, even if they repeat across days
 - Include the specific date and time for each event
-- "Nucleus shift" on Mon/Tue/Wed are 3 separate obligations
-- "SA: training" on Thu/Fri are 2 separate obligations
+- "Work shift" on Mon/Tue/Wed are 3 separate obligations
 - Different events (like dinners, meetings) are separate obligations
 
-RULES FOR RISK LEVELS:
-- "high": Only use when missing it has serious consequences (legal action, compliance violation, financial penalty, health appointment, visa/immigration deadline)
-- "medium": Important administrative tasks with moderate consequences (late fees, service interruption, missed opportunities, work shifts)
-- "low": Social events, optional tasks, or items with minimal consequences
+For study-related images:
+- Extract course codes if visible (e.g., COMP9417, MATH1234)
+- Group by subject when possible
+- Include assignment names and due dates
+
+RULES FOR PRIORITY LEVELS (use calm terminology):
+- "high": Important items that need attention soon - legal matters, compliance deadlines, financial obligations, health appointments
+- "medium": Standard tasks - work shifts, regular deadlines, training sessions
+- "low": Social events, optional tasks, or flexible-timing items
 
 CRITICAL RULES FOR STEPS:
 - ALWAYS generate at least 3 concrete, actionable steps for every obligation
-- Steps must be short, plain-English, and immediately actionable
-- For work shifts: 1) Check shift time and location 2) Prepare for work 3) Attend shift on time
+- Steps must be short, plain-English, and supportive
+- For work shifts: 1) Check shift time and location 2) Prepare for work 3) Attend shift
 - For training: 1) Review training details 2) Prepare any required materials 3) Attend training session
 - For social events: 1) Confirm attendance 2) Note the time and location 3) Attend the event
 
@@ -85,9 +89,10 @@ OUTPUT REQUIREMENTS:
 - Return ONLY valid JSON, no markdown, no commentary
 - Each title must be max 60 characters and include the specific date
 - Each summary must be 1-2 sentences in plain English
-- Each consequence must be exactly 1 sentence describing what happens if missed
+- Each consequence must be exactly 1 sentence (use calm language)
 - Steps MUST contain 3-5 simple, actionable items (NEVER empty)
 - Confidence should reflect how certain you are about this obligation (0.0-1.0)
+- Include subject/topic when detected (course codes, project names)
 
 Be thorough - extract EVERY visible event or obligation.`;
 
@@ -148,11 +153,11 @@ Be thorough - extract EVERY visible event or obligation.`;
                         risk_level: { 
                           type: 'string', 
                           enum: ['low', 'medium', 'high'], 
-                          description: 'high=serious consequences, medium=work/important, low=social/optional' 
+                          description: 'high=needs attention soon, medium=work/standard, low=social/optional' 
                         },
                         consequence: { 
                           type: 'string', 
-                          description: 'One sentence: what happens if this is missed' 
+                          description: 'One sentence: what happens if this is missed (calm language)' 
                         },
                         steps: { 
                           type: 'array', 
@@ -166,6 +171,16 @@ Be thorough - extract EVERY visible event or obligation.`;
                           minimum: 0,
                           maximum: 1,
                           description: 'How confident you are about this obligation (0.0-1.0)'
+                        },
+                        subject: {
+                          type: 'string',
+                          nullable: true,
+                          description: 'Subject or course code for grouping (e.g., COMP9417)'
+                        },
+                        topic: {
+                          type: 'string',
+                          nullable: true,
+                          description: 'Topic or assignment name for sub-grouping'
                         }
                       },
                       required: ['title', 'summary', 'risk_level', 'consequence', 'steps', 'confidence']
@@ -187,13 +202,13 @@ Be thorough - extract EVERY visible event or obligation.`;
       
       if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+          JSON.stringify({ error: 'Taking a moment to catch up. Please try again in a few seconds.' }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please add funds to continue.' }),
+          JSON.stringify({ error: 'AI credits need topping up. Please add funds to continue.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -220,7 +235,7 @@ Be thorough - extract EVERY visible event or obligation.`;
       const text = `${title} ${summary}`.toLowerCase();
       
       if (text.includes('shift') || text.includes('work')) {
-        return ['Check shift time and location', 'Prepare for work', 'Attend shift on time'];
+        return ['Check shift time and location', 'Prepare for work', 'Attend shift'];
       }
       if (text.includes('training') || text.includes('course')) {
         return ['Review training details', 'Prepare any required materials', 'Attend training session'];
@@ -231,8 +246,11 @@ Be thorough - extract EVERY visible event or obligation.`;
       if (text.includes('appointment')) {
         return ['Check appointment details', 'Prepare required documents', 'Attend or reschedule if needed'];
       }
+      if (text.includes('assignment') || text.includes('exam') || text.includes('quiz')) {
+        return ['Review the requirements', 'Prepare your work', 'Submit before the deadline'];
+      }
       // Generic fallback
-      return ['Review the details', 'Prepare as needed', 'Complete the task on time'];
+      return ['Review the details', 'Prepare as needed', 'Complete the task'];
     };
 
     // Validate and clean the obligations
@@ -259,7 +277,9 @@ Be thorough - extract EVERY visible event or obligation.`;
         risk_level: ['low', 'medium', 'high'].includes(ob.risk_level) ? ob.risk_level : 'medium',
         consequence: String(ob.consequence || ''),
         steps,
-        confidence: typeof ob.confidence === 'number' ? Math.min(1, Math.max(0, ob.confidence)) : 0.7
+        confidence: typeof ob.confidence === 'number' ? Math.min(1, Math.max(0, ob.confidence)) : 0.7,
+        subject: ob.subject || null,
+        topic: ob.topic || null
       };
     });
 

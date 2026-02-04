@@ -67,9 +67,9 @@ const statusOptions: { value: ObligationStatus; label: string }[] = [
 ];
 
 const riskOptions: { value: RiskLevel; label: string }[] = [
-  { value: 'low', label: 'Low risk' },
-  { value: 'medium', label: 'Medium risk' },
-  { value: 'high', label: 'High risk' },
+  { value: 'low', label: 'Low priority' },
+  { value: 'medium', label: 'Medium priority' },
+  { value: 'high', label: 'High priority' },
 ];
 
 export function ObligationCard({ 
@@ -354,7 +354,7 @@ export function ObligationCard({
             </div>
             
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Risk level</label>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Priority level</label>
               <Select value={editRiskLevel} onValueChange={v => setEditRiskLevel(v as RiskLevel)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -479,9 +479,9 @@ export function ObligationCard({
             {isOverdue && (
               <button
                 onClick={() => setShowRescheduleDialog(true)}
-                className="text-xs text-[hsl(var(--risk-high))] hover:underline"
+                className="text-xs text-[hsl(var(--priority-high))] hover:underline"
               >
-                This may need attention
+                Ready to reschedule?
               </button>
             )}
           </div>

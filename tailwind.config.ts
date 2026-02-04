@@ -50,13 +50,22 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        priority: {
+          low: "hsl(var(--priority-low))",
+          "low-bg": "hsl(var(--priority-low-bg))",
+          medium: "hsl(var(--priority-medium))",
+          "medium-bg": "hsl(var(--priority-medium-bg))",
+          high: "hsl(var(--priority-high))",
+          "high-bg": "hsl(var(--priority-high-bg))",
+        },
+        // Backwards compatibility alias
         risk: {
-          low: "hsl(var(--risk-low))",
-          "low-bg": "hsl(var(--risk-low-bg))",
-          medium: "hsl(var(--risk-medium))",
-          "medium-bg": "hsl(var(--risk-medium-bg))",
-          high: "hsl(var(--risk-high))",
-          "high-bg": "hsl(var(--risk-high-bg))",
+          low: "hsl(var(--priority-low))",
+          "low-bg": "hsl(var(--priority-low-bg))",
+          medium: "hsl(var(--priority-medium))",
+          "medium-bg": "hsl(var(--priority-medium-bg))",
+          high: "hsl(var(--priority-high))",
+          "high-bg": "hsl(var(--priority-high-bg))",
         },
         status: {
           "not-started": "hsl(var(--status-not-started))",

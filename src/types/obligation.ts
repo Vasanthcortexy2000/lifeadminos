@@ -1,4 +1,6 @@
-export type RiskLevel = 'low' | 'medium' | 'high';
+export type PriorityLevel = 'low' | 'medium' | 'high';
+// Alias for backwards compatibility during migration
+export type RiskLevel = PriorityLevel;
 
 export type ObligationStatus = 'not-started' | 'in-progress' | 'completed';
 
@@ -12,11 +14,13 @@ export interface ExtractedObligation {
   title: string;
   summary: string;
   due_date: string | null;
-  risk_level: RiskLevel;
+  risk_level: PriorityLevel;
   consequence: string;
   steps: string[];
   confidence: number;
   domain?: LifeDomain;
+  subject?: string; // For grouping by subject/topic
+  topic?: string;
 }
 
 export interface Obligation {
@@ -26,7 +30,7 @@ export interface Obligation {
   sourceDocument: string;
   documentId?: string;
   deadline: Date | null;
-  riskLevel: RiskLevel;
+  riskLevel: PriorityLevel;
   status: ObligationStatus;
   type: ObligationType;
   frequency: ObligationFrequency;
@@ -35,6 +39,8 @@ export interface Obligation {
   steps?: string[];
   confidence?: number;
   domain?: LifeDomain;
+  subject?: string; // For grouping (e.g., "COMP9417")
+  topic?: string; // For sub-grouping (e.g., "Assignment 2")
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,8 +49,10 @@ export interface ObligationUpdate {
   title?: string;
   description?: string;
   deadline?: Date | null;
-  riskLevel?: RiskLevel;
+  riskLevel?: PriorityLevel;
   steps?: string[];
+  subject?: string;
+  topic?: string;
 }
 
 export interface Document {

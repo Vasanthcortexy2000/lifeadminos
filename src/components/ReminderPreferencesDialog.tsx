@@ -148,7 +148,7 @@ export function ReminderPreferencesDialog() {
                 Email reminders
               </Label>
               <p className="text-xs text-muted-foreground">
-                Only for high-risk items, max once per day
+                Only for high-priority items, max once per day
               </p>
             </div>
             <Switch
@@ -170,7 +170,7 @@ export function ReminderPreferencesDialog() {
             <div className="space-y-4 pl-6">
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-risk-high">High risk</span>
+                  <span className="text-priority-high">High priority</span>
                   <span className="text-muted-foreground">{preferences.reminder_timing_high} days</span>
                 </div>
                 <Slider
@@ -184,7 +184,7 @@ export function ReminderPreferencesDialog() {
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-risk-medium">Medium risk</span>
+                  <span className="text-priority-medium">Medium priority</span>
                   <span className="text-muted-foreground">{preferences.reminder_timing_medium} days</span>
                 </div>
                 <Slider
@@ -198,7 +198,7 @@ export function ReminderPreferencesDialog() {
 
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-risk-low">Low risk</span>
+                  <span className="text-priority-low">Low priority</span>
                   <span className="text-muted-foreground">{preferences.reminder_timing_low} days</span>
                 </div>
                 <Slider
