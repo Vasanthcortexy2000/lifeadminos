@@ -39,9 +39,43 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Verify this is called with service role key (for cron jobs) or valid auth
+    const authHeader = req.headers.get('Authorization');
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
+    // Check if this is a service role call (from cron/scheduled task)
+    const isServiceRoleCall = authHeader?.includes(supabaseServiceKey);
+    
+    if (!isServiceRoleCall) {
+      // For non-service-role calls, verify the user is authenticated
+      if (!authHeader?.startsWith('Bearer ')) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } }
+      });
+      
+      const token = authHeader.replace('Bearer ', '');
+      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims?.sub) {
+        console.error('Auth error:', claimsError?.message);
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      console.log('Authenticated user trigger:', claimsData.claims.sub);
+    } else {
+      console.log('Service role invocation (scheduled task)');
+    }
+    
+    // Use service role for the actual processing
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log('Processing pending reminders...');
