@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Shield, Mail, Lock, ArrowRight } from 'lucide-react';
+ import { Shield, Mail, Lock, ArrowRight, FileUp, ListChecks, BellRing } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 
@@ -128,11 +128,11 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col lg:flex-row auth-background">
-      {/* Left Side - Branding & Value Proposition */}
-      <div className="hidden lg:flex lg:w-1/2 bg-primary/5 flex-col justify-center px-12 py-16">
-        <div className="max-w-md mx-auto">
+      {/* Value Proposition - Visible on all screens */}
+      <div className="lg:w-1/2 bg-primary/5 flex flex-col justify-center px-6 sm:px-8 lg:px-12 py-8 lg:py-16">
+        <div className="max-w-md mx-auto w-full">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-6 lg:mb-8">
             <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
               <Shield className="w-7 h-7 text-primary-foreground" aria-hidden="true" />
             </div>
@@ -143,93 +143,69 @@ export default function Auth() {
           </div>
 
           {/* Tagline */}
-          <h2 className="text-3xl font-semibold text-foreground mb-4 leading-tight">
-            The last reminder app you'll ever need.
+          <h2 className="text-2xl lg:text-3xl font-semibold text-foreground mb-3 lg:mb-4 leading-tight">
+            Everything you need to remember. Handled.
           </h2>
           
-          <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-            Deadlines, appointments, follow-ups, timetables—everything that needs action, tracked in one place. Upload any document and get every due date extracted with step-by-step guidance on what to do next.
+          <p className="text-base lg:text-lg text-muted-foreground mb-6 leading-relaxed">
+            When life gets busy, things slip through. This app makes sure they don't.
           </p>
 
-          {/* What it does */}
-          <div className="bg-card/60 rounded-xl p-5 mb-6 border border-border/50">
-            <p className="text-sm font-medium text-foreground mb-3">What you get:</p>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-primary text-xs">📄</span>
-                </div>
-                <span className="text-muted-foreground"><span className="text-foreground font-medium">Automatic extraction</span> — Drop any document and get every deadline, due date & requirement instantly</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-primary text-xs">✓</span>
-                </div>
-                <span className="text-muted-foreground"><span className="text-foreground font-medium">Guided steps</span> — Know exactly what to do next with clear action items for every task</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-primary text-xs">🔔</span>
-                </div>
-                <span className="text-muted-foreground"><span className="text-foreground font-medium">Perfect timing</span> — Reminders when you actually need them, with follow-ups until it's done</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-primary text-xs">📅</span>
-                </div>
-                <span className="text-muted-foreground"><span className="text-foreground font-medium">One dashboard</span> — Everything organised by priority so nothing slips through</span>
-              </li>
-            </ul>
+          {/* 3 Value Props - Compact on mobile, expanded on desktop */}
+          <div className="grid grid-cols-3 gap-3 lg:grid-cols-1 lg:gap-4 mb-6">
+            <div className="flex flex-col items-center lg:flex-row lg:items-start gap-2 lg:gap-4 text-center lg:text-left">
+              <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <FileUp className="w-5 h-5 lg:w-6 lg:h-6 text-primary" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-xs lg:text-sm font-semibold text-foreground">Drop any document</h3>
+                <p className="hidden lg:block text-sm text-muted-foreground">Deadlines and action items extracted instantly</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-center lg:flex-row lg:items-start gap-2 lg:gap-4 text-center lg:text-left">
+              <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <ListChecks className="w-5 h-5 lg:w-6 lg:h-6 text-primary" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-xs lg:text-sm font-semibold text-foreground">Get guided steps</h3>
+                <p className="hidden lg:block text-sm text-muted-foreground">Know exactly what to do and when to do it</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-center lg:flex-row lg:items-start gap-2 lg:gap-4 text-center lg:text-left">
+              <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <BellRing className="w-5 h-5 lg:w-6 lg:h-6 text-primary" aria-hidden="true" />
+              </div>
+              <div>
+                <h3 className="text-xs lg:text-sm font-semibold text-foreground">Never forget</h3>
+                <p className="hidden lg:block text-sm text-muted-foreground">Reminders that follow up until it's done</p>
+              </div>
+            </div>
           </div>
 
-          {/* Use cases */}
-          <p className="text-xs text-muted-foreground">
-            <span className="font-medium text-foreground/80">Works for:</span> Assignments, exams, visa renewals, appointments, bills, subscriptions, contracts, follow-ups—if it has a date, it's tracked.
+          {/* Universal tagline */}
+          <p className="hidden lg:block text-sm text-muted-foreground border-t border-border/50 pt-4">
+            If you need to remember it, we track it.
           </p>
         </div>
       </div>
 
       {/* Right Side - Auth Form */}
       <div className="flex-1 flex flex-col">
-        {/* Mobile Header */}
-        <header className="border-b border-border bg-card/80 backdrop-blur-sm lg:hidden" role="banner">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" aria-hidden="true" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-base sm:text-lg font-semibold text-foreground">Life Admin OS</h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">Your responsibility guardian</p>
-              </div>
-            </div>
-          </div>
-        </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12" id="main-content">
+        <main className="flex-1 flex items-center justify-center px-6 sm:px-8 py-8 sm:py-12" id="main-content">
           <div className="w-full max-w-md">
-            {/* Mobile Value Prop */}
-            <div className="lg:hidden mb-6 sm:mb-8 text-center">
-              <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
-                {isLogin ? 'Welcome back' : 'Never miss anything again.'}
-              </h2>
-              <p className="text-sm sm:text-base text-muted-foreground">
-                {isLogin 
-                  ? "Your deadlines and reminders are waiting." 
-                  : "Deadlines, reminders, follow-ups, and guided steps—all in one place. The only app that tracks everything and tells you exactly what to do."}
-              </p>
-            </div>
-
-            {/* Desktop Header */}
-            <div className="hidden lg:block text-center mb-6 sm:mb-8">
+            {/* Form Header */}
+            <div className="text-center mb-6 sm:mb-8">
               <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
                 {isLogin ? 'Welcome back' : 'Create your account'}
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground">
                 {isLogin 
-                  ? "I've been keeping track of things for you." 
-                  : "Start organizing your life responsibilities today."}
+                  ? "Your deadlines and reminders are waiting." 
+                  : "Start tracking everything that matters."}
               </p>
             </div>
 
