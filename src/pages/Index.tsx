@@ -15,7 +15,9 @@ import { EmptyState } from '@/components/EmptyState';
 import { DashboardStats } from '@/components/DashboardStats';
 import { useAuth } from '@/contexts/AuthContext';
 import { useObligations } from '@/hooks/useObligations';
-import { useNudges } from '@/hooks/useNudges';
+ import { useNudges } from '@/hooks/useNudges';
+ import { usePushNotifications } from '@/hooks/usePushNotifications';
+ import { NotificationPermissionDialog } from '@/components/NotificationPermissionDialog';
 import { useStressAwareness } from '@/hooks/useStressAwareness';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -40,6 +42,11 @@ const Index = () => {
   } = useObligations();
   const { nudges, dismissNudge } = useNudges();
   const { isStressed, reassurance } = useStressAwareness(obligations);
+ const { 
+   shouldShowPermissionDialog, 
+   requestPermission, 
+   declinePermission 
+ } = usePushNotifications();
 
   // Filter obligations by domain
   const filteredObligations = selectedDomains.length > 0
@@ -109,6 +116,13 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+ 
+       {/* Push Notification Permission Dialog */}
+       <NotificationPermissionDialog
+         open={shouldShowPermissionDialog}
+         onEnable={requestPermission}
+         onDecline={declinePermission}
+       />
 
       <main id="main-content" className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Welcome Message */}
