@@ -38,52 +38,22 @@ export default function SharedObligation() {
       }
 
       try {
-        // First get the share record
-        const { data: shareData, error: shareError } = await supabase
-          .from('obligation_shares')
-          .select('obligation_id, revoked, expires_at')
-          .eq('share_token', token)
-          .maybeSingle();
-
-        if (shareError) throw shareError;
-
-        if (!shareData) {
-          setError('This link is invalid or has expired');
-          setLoading(false);
-          return;
-        }
-
-        if (shareData.revoked) {
-          setError('This link has been revoked');
-          setLoading(false);
-          return;
-        }
-
-        if (shareData.expires_at && new Date(shareData.expires_at) < new Date()) {
-          setError('This link has expired');
-          setLoading(false);
-          return;
-        }
-
-        // Fetch the obligation details (using service role would be needed in production)
-        // For now, we'll use a public RPC or edge function
-        const { data: obligationData, error: obligationError } = await supabase
-          .from('obligations')
-          .select('id, title, description, deadline, risk_level, status, consequence, steps, domain, source_document, created_at')
-          .eq('id', shareData.obligation_id)
-          .maybeSingle();
-
-        if (obligationError) throw obligationError;
-
-        if (!obligationData) {
-          setError('The obligation no longer exists');
+       // Use secure edge function for token lookup
+       const { data, error: fnError } = await supabase.functions.invoke('get-shared-obligation', {
+         body: { token }
+       });
+ 
+       if (fnError) throw fnError;
+ 
+       if (data.error) {
+         setError(data.message || 'Unable to load this obligation');
           setLoading(false);
           return;
         }
 
         setObligation({
-          ...obligationData,
-          steps: Array.isArray(obligationData.steps) ? obligationData.steps as string[] : null,
+         ...data.obligation,
+         steps: Array.isArray(data.obligation.steps) ? data.obligation.steps as string[] : null,
         });
       } catch (err) {
         console.error('Error fetching shared obligation:', err);
