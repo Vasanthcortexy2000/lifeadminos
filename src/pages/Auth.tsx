@@ -144,11 +144,11 @@ export default function Auth() {
 
           {/* Tagline */}
           <h2 className="text-3xl font-semibold text-foreground mb-4 leading-tight">
-            Every deadline.<br />Every step to get there.
+            The last reminder app you'll ever need.
           </h2>
           
           <p className="text-lg text-muted-foreground mb-6 leading-relaxed">
-            Upload any document—assignments, appointments, contracts, bills. AI extracts every deadline and breaks it into clear steps so you always know exactly what to do next.
+            Deadlines, appointments, follow-ups, timetables—everything that needs action, tracked in one place. Upload any document and get every due date extracted with step-by-step guidance on what to do next.
           </p>
 
           {/* What it does */}
@@ -159,32 +159,32 @@ export default function Auth() {
                 <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-primary text-xs">📄</span>
                 </div>
-                <span className="text-muted-foreground"><span className="text-foreground font-medium">Smart extraction</span> — Deadlines, due dates & requirements pulled from any document</span>
+                <span className="text-muted-foreground"><span className="text-foreground font-medium">Automatic extraction</span> — Drop any document and get every deadline, due date & requirement instantly</span>
               </li>
               <li className="flex items-start gap-3">
                 <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-primary text-xs">✓</span>
                 </div>
-                <span className="text-muted-foreground"><span className="text-foreground font-medium">Step-by-step guidance</span> — Clear action items to complete each task</span>
+                <span className="text-muted-foreground"><span className="text-foreground font-medium">Guided steps</span> — Know exactly what to do next with clear action items for every task</span>
               </li>
               <li className="flex items-start gap-3">
                 <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-primary text-xs">🔔</span>
                 </div>
-                <span className="text-muted-foreground"><span className="text-foreground font-medium">Timely reminders</span> — Get nudged at the right time, not too early, not too late</span>
+                <span className="text-muted-foreground"><span className="text-foreground font-medium">Perfect timing</span> — Reminders when you actually need them, with follow-ups until it's done</span>
               </li>
               <li className="flex items-start gap-3">
                 <div className="w-5 h-5 rounded bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-primary text-xs">📅</span>
                 </div>
-                <span className="text-muted-foreground"><span className="text-foreground font-medium">Calendar view</span> — See everything at a glance, organized by priority</span>
+                <span className="text-muted-foreground"><span className="text-foreground font-medium">One dashboard</span> — Everything organised by priority so nothing slips through</span>
               </li>
             </ul>
           </div>
 
           {/* Use cases */}
           <p className="text-xs text-muted-foreground">
-            <span className="font-medium text-foreground/80">Works for:</span> Uni assignments, exam schedules, visa renewals, doctor appointments, tax deadlines, bills, contracts—anything that needs action.
+            <span className="font-medium text-foreground/80">Works for:</span> Assignments, exams, visa renewals, appointments, bills, subscriptions, contracts, follow-ups—if it has a date, it's tracked.
           </p>
         </div>
       </div>
@@ -212,12 +212,12 @@ export default function Auth() {
             {/* Mobile Value Prop */}
             <div className="lg:hidden mb-6 sm:mb-8 text-center">
               <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
-                {isLogin ? 'Welcome back' : 'Every deadline. Every step.'}
+                {isLogin ? 'Welcome back' : 'Never miss anything again.'}
               </h2>
               <p className="text-sm sm:text-base text-muted-foreground">
                 {isLogin 
-                  ? "I've been keeping track of things for you." 
-                  : "Upload any document. Get deadlines, action steps, and reminders—so you always know what to do next."}
+                  ? "Your deadlines and reminders are waiting." 
+                  : "Deadlines, reminders, follow-ups, and guided steps—all in one place. The only app that tracks everything and tells you exactly what to do."}
               </p>
             </div>
 
@@ -342,7 +342,7 @@ export default function Auth() {
             {/* Trust Message */}
             <div className="mt-6 sm:mt-8 p-4 bg-secondary/50 rounded-xl" role="note">
               <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                Your documents are processed securely. We do not sell or train on your data.
+                Your documents stay private and secure. We never sell or share your data.
               </p>
             </div>
           </div>
