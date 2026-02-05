@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Settings, Bell, Mail, Clock, Save } from 'lucide-react';
+ import { useState, useEffect } from 'react';
+ import { Settings, Bell, Mail, Clock, Save, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -15,7 +15,8 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
+ import { toast } from '@/hooks/use-toast';
+ import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface ReminderPreferences {
   reminder_enabled: boolean;
@@ -36,6 +37,12 @@ export function ReminderPreferencesDialog() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const { user } = useAuth();
+ const { 
+   isSupported: pushSupported, 
+   pushEnabled, 
+   togglePush,
+   isRegistered: pushRegistered,
+ } = usePushNotifications();
 
   useEffect(() => {
     if (!user) return;
@@ -160,6 +167,31 @@ export function ReminderPreferencesDialog() {
 
           <Separator />
 
+           {/* Push notifications toggle - only on native */}
+           {pushSupported && (
+             <>
+               <div className="flex items-center justify-between">
+                 <div className="space-y-0.5">
+                   <Label htmlFor="push-enabled" className="flex items-center gap-2">
+                     <Smartphone className="w-4 h-4" />
+                     Push notifications
+                   </Label>
+                   <p className="text-xs text-muted-foreground">
+                     {pushRegistered 
+                       ? 'Get alerts even when the app is closed'
+                       : 'Enable to receive alerts on your device'}
+                   </p>
+                 </div>
+                 <Switch
+                   id="push-enabled"
+                   checked={pushEnabled}
+                   onCheckedChange={(checked) => togglePush(checked)}
+                 />
+               </div>
+               <Separator />
+             </>
+           )}
+ 
           {/* Timing preferences */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">

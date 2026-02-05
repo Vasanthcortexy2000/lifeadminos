@@ -245,6 +245,9 @@ export type Database = {
           id: string
           occupation_type: string | null
           preferred_reminder_tone: string | null
+          push_enabled: boolean | null
+          push_permission_asked: boolean | null
+          push_token: string | null
           reminder_enabled: boolean | null
           reminder_timing_high: number | null
           reminder_timing_low: number | null
@@ -262,6 +265,9 @@ export type Database = {
           id?: string
           occupation_type?: string | null
           preferred_reminder_tone?: string | null
+          push_enabled?: boolean | null
+          push_permission_asked?: boolean | null
+          push_token?: string | null
           reminder_enabled?: boolean | null
           reminder_timing_high?: number | null
           reminder_timing_low?: number | null
@@ -279,6 +285,9 @@ export type Database = {
           id?: string
           occupation_type?: string | null
           preferred_reminder_tone?: string | null
+          push_enabled?: boolean | null
+          push_permission_asked?: boolean | null
+          push_token?: string | null
           reminder_enabled?: boolean | null
           reminder_timing_high?: number | null
           reminder_timing_low?: number | null

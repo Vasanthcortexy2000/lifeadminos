@@ -128,7 +128,12 @@ Deno.serve(async (req) => {
       obligation_id: string;
       message: string;
       tone: string;
-    }> = [];
+   }> = [];
+   const pushNotificationsToSend: Array<{
+     user_id: string;
+     title: string;
+     body: string;
+   }> = [];
     const reminderIdsToMark: string[] = [];
 
     for (const reminder of pendingReminders) {
@@ -165,6 +170,13 @@ Deno.serve(async (req) => {
         tone,
       });
 
+     // Queue push notification
+     pushNotificationsToSend.push({
+       user_id: reminder.user_id,
+       title: reminder.type === 'overdue' ? 'Overdue reminder' : 'Upcoming deadline',
+       body: message,
+     });
+ 
       reminderIdsToMark.push(reminder.id);
       processedCount++;
     }
@@ -181,6 +193,29 @@ Deno.serve(async (req) => {
       }
     }
 
+   // Send push notifications in background (don't block response)
+   if (pushNotificationsToSend.length > 0) {
+     const sendPushPromises = pushNotificationsToSend.map(async (notification) => {
+       try {
+         const response = await fetch(`${supabaseUrl}/functions/v1/send-push-notification`, {
+           method: 'POST',
+           headers: {
+             'Authorization': `Bearer ${supabaseServiceKey}`,
+             'Content-Type': 'application/json',
+           },
+           body: JSON.stringify(notification),
+         });
+         const result = await response.json();
+         console.log(`Push sent to ${notification.user_id}:`, result);
+       } catch (error) {
+         console.error(`Failed to send push to ${notification.user_id}:`, error);
+       }
+     });
+ 
+     // Fire and forget - don't await
+     Promise.all(sendPushPromises).catch(console.error);
+   }
+ 
     // Mark reminders as sent
     if (reminderIdsToMark.length > 0) {
       const { error: updateError } = await supabase
