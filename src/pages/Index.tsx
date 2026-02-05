@@ -131,6 +131,21 @@ const Index = () => {
           <DashboardStats obligations={obligations} className="mb-6" />
         )}
 
+        {/* Document Upload - always at top */}
+        <section
+          id="add-documents"
+          className="mb-6 animate-slide-up scroll-mt-20"
+          aria-labelledby="add-documents-heading"
+        >
+          <h3 
+            id="add-documents-heading" 
+            className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4"
+          >
+            Add Documents
+          </h3>
+          <DocumentUpload onUpload={handleUpload} onObligationsSaved={refetch} />
+        </section>
+
         {/* Reminder Banner - calm, dismissible */}
         {!obligationsLoading && obligations.length > 0 && (
           <ReminderBanner 
@@ -156,18 +171,9 @@ const Index = () => {
               >
                 <EmptyState
                   title="Nothing to track yet"
-                  description="Upload a document or paste text below to extract obligations and deadlines. I'll help you keep on top of what matters."
+                  description="Upload a document above to extract obligations and deadlines. I'll help you keep on top of what matters."
                   variant="calm"
                 />
-                <div className="mt-6 flex justify-center">
-                  <Button 
-                    onClick={scrollToAddDocuments} 
-                    className="gap-2 min-h-[44px] w-full sm:w-auto"
-                  >
-                    <FileText className="h-4 w-4" aria-hidden="true" />
-                    Add your first obligation
-                  </Button>
-                </div>
               </section>
             )}
 
@@ -178,27 +184,11 @@ const Index = () => {
               </section>
             )}
 
-            {/* Document Upload */}
-            <section
-              id="add-documents"
-              className="animate-slide-up scroll-mt-20"
-              style={{ animationDelay: '100ms' }}
-              aria-labelledby="add-documents-heading"
-            >
-              <h3 
-                id="add-documents-heading" 
-                className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4"
-              >
-                Add Documents
-              </h3>
-              <DocumentUpload onUpload={handleUpload} onObligationsSaved={refetch} />
-            </section>
-
             {/* Filters and View Toggle */}
             {!obligationsLoading && obligations.length > 0 && (
               <section 
                 className="animate-slide-up space-y-4" 
-                style={{ animationDelay: '150ms' }}
+                style={{ animationDelay: '100ms' }}
                 aria-label="View options and filters"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -234,7 +224,7 @@ const Index = () => {
             {/* Timeline or Subject View */}
             <section 
               className="animate-slide-up" 
-              style={{ animationDelay: '200ms' }}
+              style={{ animationDelay: '150ms' }}
               data-section="timeline"
             >
               {obligationsLoading ? (
@@ -264,7 +254,7 @@ const Index = () => {
           {/* Sidebar */}
           <aside 
             className="space-y-4 sm:space-y-6 animate-slide-up" 
-            style={{ animationDelay: '300ms' }}
+            style={{ animationDelay: '200ms' }}
             aria-label="Updates and notifications"
           >
             {/* Urgent nudge banners - in-app, dismissible */}
