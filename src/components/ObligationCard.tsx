@@ -3,7 +3,7 @@ import { Obligation, ObligationStatus, ObligationUpdate, RiskLevel } from '@/typ
 import { RiskBadge } from './RiskBadge';
 import { DueDateBadge } from './DueDateBadge';
 import { ConfidenceBadge } from './ConfidenceBadge';
-import { DomainBadge, DomainSelector, LifeDomain } from './LifeDomain';
+import { DomainBadge, DomainSelector, LifeDomain, LIFE_DOMAINS } from './LifeDomain';
 import { RescheduleDialog } from './RescheduleDialog';
 import { EvidenceAttachment } from './EvidenceAttachment';
 
@@ -92,6 +92,7 @@ export function ObligationCard({
     obligation.deadline ? format(obligation.deadline, 'yyyy-MM-dd') : ''
   );
   const [editRiskLevel, setEditRiskLevel] = useState(obligation.riskLevel);
+  const [editDomain, setEditDomain] = useState<LifeDomain>(obligation.domain || 'general');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   // Reschedule dialog state
@@ -247,6 +248,7 @@ export function ObligationCard({
     setEditDescription(obligation.description);
     setEditDeadline(obligation.deadline ? format(obligation.deadline, 'yyyy-MM-dd') : '');
     setEditRiskLevel(obligation.riskLevel);
+    setEditDomain(obligation.domain || 'general');
     setIsEditing(true);
   };
 
@@ -264,6 +266,7 @@ export function ObligationCard({
         description: editDescription.trim(),
         deadline: editDeadline ? new Date(editDeadline) : null,
         riskLevel: editRiskLevel,
+        domain: editDomain,
       });
       setIsEditing(false);
       setShowSaved(true);
@@ -327,7 +330,7 @@ export function ObligationCard({
             />
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label htmlFor={`edit-deadline-${obligation.id}`} className="text-xs font-medium text-muted-foreground mb-1.5 block">Due date</label>
               <div className="relative">
@@ -345,13 +348,32 @@ export function ObligationCard({
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Priority level</label>
               <Select value={editRiskLevel} onValueChange={v => setEditRiskLevel(v as RiskLevel)}>
-                <SelectTrigger>
+                <SelectTrigger className="min-h-[44px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {riskOptions.map(opt => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Life area</label>
+              <Select value={editDomain} onValueChange={v => setEditDomain(v as LifeDomain)}>
+                <SelectTrigger className="min-h-[44px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LIFE_DOMAINS.map(domain => (
+                    <SelectItem key={domain.value} value={domain.value}>
+                      <span className="flex items-center gap-2">
+                        <span className={cn('w-2 h-2 rounded-full', domain.color.split(' ')[0])} />
+                        {domain.label}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
