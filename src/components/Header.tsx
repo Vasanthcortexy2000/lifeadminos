@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, LogOut, LayoutDashboard, Upload, Calendar, Menu, X } from 'lucide-react';
+import { Shield, LogOut, LayoutDashboard, Upload, Calendar, Menu, X, FolderOpen, FileBarChart } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -15,11 +15,14 @@ export function Header() {
 
   const isDashboard = location.pathname === '/';
   const isCalendar = location.pathname === '/calendar';
+  const isVault = location.pathname === '/vault';
+  const isDigest = location.pathname === '/digest';
 
   const navLinks = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard, active: isDashboard && !location.hash },
     { to: '/calendar', label: 'Calendar', icon: Calendar, active: isCalendar },
-    { to: '/#add-documents', label: 'Upload', icon: Upload, active: isDashboard && location.hash === '#add-documents' },
+    { to: '/vault', label: 'Vault', icon: FolderOpen, active: isVault },
+    { to: '/digest', label: 'Digest', icon: FileBarChart, active: isDigest },
   ];
 
   const NavLinkItem = ({ to, label, icon: Icon, active, onClick }: {
