@@ -50,6 +50,7 @@ export interface ObligationUpdate {
   description?: string;
   deadline?: Date | null;
   riskLevel?: PriorityLevel;
+  domain?: LifeDomain;
   steps?: string[];
   subject?: string;
   topic?: string;

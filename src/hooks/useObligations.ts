@@ -145,6 +145,7 @@ export function useObligations() {
       dbUpdates.deadline = updates.deadline ? updates.deadline.toISOString() : null;
     }
     if (updates.riskLevel !== undefined) dbUpdates.risk_level = updates.riskLevel;
+    if (updates.domain !== undefined) dbUpdates.domain = updates.domain;
     if (updates.steps !== undefined) dbUpdates.steps = updates.steps;
 
     const { error } = await supabase
