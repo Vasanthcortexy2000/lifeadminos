@@ -55,19 +55,14 @@ export function EvidenceAttachment({
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('evidence')
-        .getPublicUrl(filePath);
-
-      // Save to evidence table
+      // Store the file path (not URL) - signed URLs will be generated when viewing
       const { error: dbError } = await supabase
         .from('obligation_evidence')
         .insert({
           user_id: user.id,
           obligation_id: obligationId,
           file_name: file.name,
-          file_url: urlData.publicUrl,
+          file_url: filePath, // Store path, not public URL
           file_type: file.type,
         });
 
@@ -91,16 +86,12 @@ export function EvidenceAttachment({
     }
   }, [user, obligationId, onEvidenceChange]);
 
-  const handleDelete = async (evidenceId: string, fileUrl: string) => {
+  const handleDelete = async (evidenceId: string, filePath: string) => {
     if (!user) return;
 
     try {
-      // Extract file path from URL
-      const urlParts = fileUrl.split('/evidence/');
-      if (urlParts.length > 1) {
-        const filePath = urlParts[1];
-        await supabase.storage.from('evidence').remove([filePath]);
-      }
+      // The file_url now stores the path directly
+      await supabase.storage.from('evidence').remove([filePath]);
 
       // Delete from database
       await supabase
@@ -118,6 +109,27 @@ export function EvidenceAttachment({
       console.error('Error deleting evidence:', error);
       toast({
         title: 'Could not remove',
+        description: 'Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Generate signed URL for viewing evidence
+  const getSignedUrl = async (filePath: string): Promise<string | null> => {
+    const { data } = await supabase.storage
+      .from('evidence')
+      .createSignedUrl(filePath, 3600); // 1 hour expiry
+    return data?.signedUrl || null;
+  };
+
+  const handleViewEvidence = async (filePath: string) => {
+    const signedUrl = await getSignedUrl(filePath);
+    if (signedUrl) {
+      window.open(signedUrl, '_blank', 'noopener,noreferrer');
+    } else {
+      toast({
+        title: 'Could not open file',
         description: 'Please try again.',
         variant: 'destructive',
       });
@@ -164,14 +176,12 @@ export function EvidenceAttachment({
                 className="flex items-center gap-3 p-3 bg-secondary rounded-lg"
               >
                 <FileCheck2 className="w-4 h-4 text-primary flex-shrink-0" />
-                <a 
-                  href={item.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 text-sm text-foreground hover:underline truncate"
+                <button
+                  onClick={() => handleViewEvidence(item.file_url)}
+                  className="flex-1 text-sm text-foreground hover:underline truncate text-left"
                 >
                   {item.file_name}
-                </a>
+                </button>
                 <button
                   onClick={() => handleDelete(item.id, item.file_url)}
                   className="p-1 hover:bg-accent rounded"

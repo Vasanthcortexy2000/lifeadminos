@@ -42,6 +42,27 @@ serve(async (req) => {
 
     const { imageBase64, documentName, mimeType } = await req.json();
 
+    // Server-side input validation
+    // Validate image size (base64 is ~33% larger than binary, so ~13MB base64 = ~10MB file)
+    if (imageBase64 && imageBase64.length > 13000000) {
+      return new Response(
+        JSON.stringify({ error: 'Image too large. Maximum 10MB.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate MIME type allowlist
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (mimeType && !allowedTypes.includes(mimeType)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid image format. Supported: JPEG, PNG, GIF, WebP' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Sanitize document name
+    const sanitizedName = documentName?.slice(0, 255).replace(/[^a-zA-Z0-9._\- ]/g, '_') || 'unnamed';
+
     if (!imageBase64) {
       console.log('No image provided');
       return new Response(
@@ -55,7 +76,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('Analyzing image with vision:', documentName);
+    console.log('Analyzing image with vision:', sanitizedName);
 
     const systemPrompt = `You are a calm, supportive document analyst who reads images of documents, calendars, schedules, and screenshots. 
 Extract ALL events, appointments, obligations, deadlines, and required actions you can see in the image.
