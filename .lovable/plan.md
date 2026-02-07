@@ -1,161 +1,83 @@
 
-
-# Push Notifications with Opt-in Permission
+# Plan: Add "We remember so you don't have to." Tagline with First-Person Voice
 
 ## Overview
-
-This plan adds native push notifications to the app so you'll receive alerts on your phone even when the app is closed. Importantly, the app will **ask for your permission first** before enabling notifications.
-
----
-
-## How It Will Work
-
-1. **First time you open the app**: A friendly dialog appears asking if you'd like to receive push notifications
-2. **If you say yes**: The app registers your device and you'll get notifications for upcoming deadlines
-3. **If you say no**: No problem - you can always enable them later from settings
-4. **When a reminder is due**: Your phone buzzes/vibrates with the reminder message, even if the app is closed
+We'll update all messaging across the app to use the new tagline and consistently speak in first-person plural ("we", "us", "our"). This creates a warmer, more personal brand identity where Life Admin OS feels like a supportive team standing behind the user.
 
 ---
 
-## What Gets Built
+## Files to Update
 
-### 1. Permission Prompt Dialog
-A welcoming dialog that appears on first app launch (after login):
+### 1. SEO & Meta Tags (`index.html`)
+- **New Title**: "Life Admin OS - We Remember So You Don't Have To"
+- **New Meta Description**: "We turn confusing documents into clear responsibilities. We track your deadlines and make sure nothing critical slips through."
+- **Open Graph & Twitter Cards**: Update all descriptions to first-person
+- **Structured Data**: Update Organization description
 
-```text
-+----------------------------------+
-|  [Bell icon]                     |
-|                                  |
-|  Stay on top of deadlines        |
-|                                  |
-|  Get a gentle nudge when         |
-|  something important is coming   |
-|  up - even when you're not       |
-|  using the app.                  |
-|                                  |
-|  [Enable notifications]          |
-|  [Maybe later]                   |
-+----------------------------------+
-```
+### 2. Auth Page (`src/pages/Auth.tsx`)
+- **Main Tagline** (line 147): Change "Everything you need to remember. Handled." to **"We remember so you don't have to."**
+- **Supporting Text** (line 150-151): Change to "When life gets busy, we make sure nothing slips through."
+- **Value Props**:
+  - "Deadlines and action items extracted instantly" → "We extract deadlines and action items instantly"
+  - "Know exactly what to do and when" → "We tell you exactly what to do and when"
+  - "Reminders that follow up until it's done" → "We follow up until it's done"
+- **Universal tagline** (line 188-189): "If you need to remember it, we track it."
+- **Trust message** (line 321): "Your documents stay private and secure. We never sell or share your data."
 
-### 2. Settings Integration
-- Add a "Push notifications" toggle to the existing Reminder Preferences dialog
-- Shows current permission status
-- Allows re-enabling if previously declined
+### 3. Header (`src/components/Header.tsx`)
+- **Subtitle** (line 79): Change "Your responsibility guardian" to **"We remember so you don't have to."**
 
-### 3. Backend Notification Delivery
-- When reminders are due, send push notifications to registered devices
-- Works alongside existing in-app nudges
+### 4. Dashboard (`src/pages/Index.tsx`)
+- **Welcome messages** (lines 131-136):
+  - Stressed: "Let's take this step by step." → **"We've got this. Let's take it step by step."**
+  - Calm: "I have your back." → **"We have your back."**
+  - Supporting text: "You don't need to remember everything. I will." → **"You don't need to remember everything. We will."**
+- **Empty state** (line 188): "I'll help you keep on top..." → "We'll help you keep on top..."
+- **Trust message** (line 287): "We do not sell..." (already correct)
 
----
+### 5. Stress Awareness Hook (`src/hooks/useStressAwareness.ts`)
+Update all reassurance messages to first-person plural:
+- "You're on track. One step at a time." → "You're on track. We're with you."
+- "Everything's manageable. You've got this." → "Everything's manageable. We've got this together."
+- "A few priorities need attention. We'll tackle them together." (already correct)
+- "Let's take this step by step." → "We'll take this step by step."
+- "We'll work through this together..." (already correct)
+- "Let's simplify what's on your plate." → "We'll simplify what's on your plate."
 
-## Technical Implementation
+### 6. AI Chat Widget (`src/components/AIChatWidget.tsx`)
+- **Header subtitle** (line 128): "Ask about your obligations" → "We're here to help"
+- **Empty state text** (line 147-148): "I can help you understand..." → "We can help you understand your obligations. Try asking:"
 
-### Files to Create
-
-| File | Purpose |
-|------|---------|
-| `src/hooks/usePushNotifications.ts` | Core hook for registering/managing push notifications |
-| `src/components/NotificationPermissionDialog.tsx` | The opt-in permission prompt |
-| `supabase/functions/send-push-notification/index.ts` | Backend function to send notifications via FCM |
-
-### Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/pages/Index.tsx` | Show permission dialog on first login |
-| `src/components/ReminderPreferencesDialog.tsx` | Add push notification toggle |
-| `supabase/functions/process-reminders/index.ts` | Trigger push notifications when creating nudges |
-| `capacitor.config.ts` | Add push notification plugin config |
-
-### Database Changes
-
-Add columns to `profiles` table:
-- `push_enabled` (boolean) - User preference for push notifications
-- `push_token` (text) - Device token for sending notifications
-- `push_permission_asked` (boolean) - Track if we've asked for permission
+### 7. AI Chat Edge Function (`supabase/functions/ai-chat/index.ts`)
+- Update system prompt to use first-person plural: "We are a helpful, calm, and supportive team..." and "We have access to your obligations..."
 
 ---
 
-## Dependencies to Install
+## Voice Guidelines Summary
 
-```bash
-# Capacitor Push Notifications plugin
-@capacitor/push-notifications
-```
-
----
-
-## User Flow
-
-```text
-User logs in
-     |
-     v
-Has permission been asked before?
-     |
-     +-- No --> Show permission dialog
-     |              |
-     |              +-- "Enable" --> Request OS permission
-     |              |                    |
-     |              |                    +-- Granted --> Register token, save to DB
-     |              |                    +-- Denied --> Save preference, hide dialog
-     |              |
-     |              +-- "Maybe later" --> Save preference, hide dialog
-     |
-     +-- Yes --> Check if push_enabled
-                    |
-                    +-- Continue to dashboard
-```
+| Before (Mixed Voice) | After (First-Person Plural) |
+|---------------------|----------------------------|
+| "Your responsibility guardian" | "We remember so you don't have to." |
+| "I have your back" | "We have your back" |
+| "I will remember" | "We will remember" |
+| "I'll help you" | "We'll help you" |
+| "Track deadlines" | "We track your deadlines" |
 
 ---
 
-## Backend Push Flow
+## Technical Details
 
-```text
-Hourly cron triggers process-reminders
-     |
-     v
-Create nudge in database
-     |
-     v
-Check if user has push_enabled = true
-     |
-     +-- No --> Done (in-app only)
-     |
-     +-- Yes --> Get push_token from profiles
-                    |
-                    v
-              Call send-push-notification function
-                    |
-                    v
-              Send via Firebase Cloud Messaging
-```
+### Files Modified
+1. `index.html` - SEO meta tags and structured data
+2. `src/pages/Auth.tsx` - Login/signup page messaging
+3. `src/components/Header.tsx` - App header subtitle
+4. `src/pages/Index.tsx` - Dashboard welcome messages
+5. `src/hooks/useStressAwareness.ts` - Reassurance messages
+6. `src/components/AIChatWidget.tsx` - Chat widget labels
+7. `supabase/functions/ai-chat/index.ts` - AI assistant personality
 
----
+### No Database Changes
+This is a messaging-only update with no schema or RLS changes required.
 
-## Permission Dialog Behavior
-
-1. **Shown once per user** (tracked via `push_permission_asked`)
-2. **Appears after login**, not before (user must be authenticated)
-3. **Non-blocking** - user can dismiss and continue using the app
-4. **Re-accessible** from settings if they want to enable later
-
----
-
-## Security Considerations
-
-- Push tokens are stored per-user and protected by RLS
-- Only the backend (service role) can read tokens to send notifications
-- Users can revoke permission at any time from settings
-
----
-
-## What You'll Need
-
-For push notifications to work on a real device, you'll need:
-1. **For iOS**: An Apple Developer account and push certificate
-2. **For Android**: A Firebase project with Cloud Messaging enabled
-
-After implementation, I'll provide step-by-step instructions for setting these up when you're ready to test on a real device.
-
+### Deployment
+The AI chat edge function will be automatically deployed after changes.
