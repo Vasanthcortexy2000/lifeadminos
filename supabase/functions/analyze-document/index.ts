@@ -42,6 +42,17 @@ serve(async (req) => {
 
     const { rawText, documentName } = await req.json();
 
+    // Server-side input validation
+    if (rawText && rawText.length > 500000) {
+      return new Response(
+        JSON.stringify({ error: 'Document too large. Maximum 500KB of text.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Sanitize document name (limit length and remove unsafe characters)
+    const sanitizedName = documentName?.slice(0, 255).replace(/[^a-zA-Z0-9._\- ]/g, '_') || 'unnamed';
+
     if (!rawText || rawText.trim().length === 0) {
       console.log('No text content provided');
       return new Response(
@@ -55,7 +66,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('Analyzing document:', documentName);
+    console.log('Analyzing document:', sanitizedName);
     console.log('Text length:', rawText.length);
 
     const systemPrompt = `You are a calm, supportive document analyst. Extract obligations, deadlines, and required actions from documents using clear, non-alarmist language.

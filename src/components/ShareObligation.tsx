@@ -44,8 +44,12 @@ export function ShareObligation({
 
   const activeShares = existingShares.filter(s => !s.revoked);
 
+  // Generate cryptographically secure token with sufficient entropy (32+ characters)
   const generateToken = () => {
-    return crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+    // Combine multiple UUIDs and use full length for high entropy
+    const uuid1 = crypto.randomUUID().replace(/-/g, '');
+    const uuid2 = crypto.randomUUID().replace(/-/g, '');
+    return (uuid1 + uuid2).substring(0, 32);
   };
 
   const createShare = async () => {
