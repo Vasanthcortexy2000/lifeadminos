@@ -8,9 +8,15 @@ verify_jwt = false
 
 [functions.process-reminders]
 verify_jwt = false
- 
- [functions.send-push-notification]
- verify_jwt = false
- 
- [functions.get-shared-obligation]
- verify_jwt = false
+
+[functions.send-push-notification]
+verify_jwt = false
+
+[functions.get-shared-obligation]
+verify_jwt = false
+
+[functions.weekly-digest]
+verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = false
