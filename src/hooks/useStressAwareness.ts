@@ -13,20 +13,20 @@ export interface StressState {
 
 const REASSURANCE_MESSAGES = {
   calm: [
-    "You're on track. One step at a time.",
-    "Everything's manageable. You've got this.",
-    "No rush. Take things at your own pace.",
+    "You're on track. We're with you.",
+    "Everything's manageable. We've got this together.",
+    "No rush. We're keeping track for you.",
   ],
   moderate: [
-    "You have a few things coming up. Let's focus on what matters most.",
-    "It's a busy period, but you're handling it well.",
+    "You have a few things coming up. We'll help you focus on what matters most.",
+    "It's a busy period, but we're here to help.",
     "A few priorities need attention. We'll tackle them together.",
   ],
   elevated: [
-    "I know things feel overwhelming right now. Let's take this step by step.",
-    "You're not late. There's still time. Let's focus on just one thing.",
+    "We know things feel overwhelming right now. We'll take this step by step.",
+    "You're not late. There's still time. We'll focus on just one thing.",
     "Take a breath. We'll work through this together, one task at a time.",
-    "You're doing better than you think. Let's simplify what's on your plate.",
+    "You're doing better than you think. We'll simplify what's on your plate.",
   ],
 };
 

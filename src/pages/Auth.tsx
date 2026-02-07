@@ -138,17 +138,17 @@ export default function Auth() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground">Life Admin OS</h1>
-              <p className="text-sm text-muted-foreground">Your responsibility guardian</p>
+              <p className="text-sm text-muted-foreground">We remember so you don't have to.</p>
             </div>
           </div>
 
           {/* Tagline */}
           <h2 className="text-2xl lg:text-3xl font-semibold text-foreground mb-3 lg:mb-4 leading-tight">
-            Everything you need to remember. Handled.
+            We remember so you don't have to.
           </h2>
           
           <p className="text-base lg:text-lg text-muted-foreground mb-6 leading-relaxed">
-            When life gets busy, things slip through. This app makes sure they don't.
+            When life gets busy, we make sure nothing slips through.
           </p>
 
           {/* 3 Value Props - Compact on mobile, expanded on desktop */}
@@ -159,7 +159,7 @@ export default function Auth() {
               </div>
               <div>
                 <h3 className="text-xs lg:text-sm font-semibold text-foreground">Drop any document</h3>
-                <p className="hidden lg:block text-sm text-muted-foreground">Deadlines and action items extracted instantly</p>
+                <p className="hidden lg:block text-sm text-muted-foreground">We extract deadlines and action items instantly</p>
               </div>
             </div>
             
@@ -169,7 +169,7 @@ export default function Auth() {
               </div>
               <div>
                 <h3 className="text-xs lg:text-sm font-semibold text-foreground">Get guided steps</h3>
-                <p className="hidden lg:block text-sm text-muted-foreground">Know exactly what to do and when to do it</p>
+                <p className="hidden lg:block text-sm text-muted-foreground">We tell you exactly what to do and when</p>
               </div>
             </div>
             
@@ -179,14 +179,14 @@ export default function Auth() {
               </div>
               <div>
                 <h3 className="text-xs lg:text-sm font-semibold text-foreground">Never forget</h3>
-                <p className="hidden lg:block text-sm text-muted-foreground">Reminders that follow up until it's done</p>
+                <p className="hidden lg:block text-sm text-muted-foreground">We follow up until it's done</p>
               </div>
             </div>
           </div>
 
           {/* Universal tagline */}
           <p className="hidden lg:block text-sm text-muted-foreground border-t border-border/50 pt-4">
-            If you need to remember it, we track it.
+            If you need to remember it, we've got it covered.
           </p>
         </div>
       </div>

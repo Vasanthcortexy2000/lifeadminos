@@ -125,7 +125,7 @@ export function AIChatWidget() {
             </div>
             <div>
               <h3 className="text-sm font-semibold">AI Assistant</h3>
-              <p className="text-xs text-muted-foreground">Ask about your obligations</p>
+              <p className="text-xs text-muted-foreground">We're here to help</p>
             </div>
           </div>
           <Button
@@ -145,7 +145,7 @@ export function AIChatWidget() {
             <div className="text-center py-8">
               <Sparkles className="w-8 h-8 text-muted-foreground/50 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground mb-4">
-                I can help you understand your obligations. Try asking:
+                We can help you understand your obligations. Try asking:
               </p>
               <div className="space-y-2">
                 {[

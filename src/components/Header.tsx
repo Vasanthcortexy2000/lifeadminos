@@ -76,7 +76,7 @@ export function Header() {
             </div>
             <div className="min-w-0">
               <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">Life Admin OS</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">Your responsibility guardian</p>
+              <p className="text-xs text-muted-foreground hidden sm:block">We remember so you don't have to.</p>
             </div>
           </Link>
 
