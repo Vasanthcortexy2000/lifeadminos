@@ -129,10 +129,10 @@ const Index = () => {
         <div className="mb-6 animate-fade-in flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="min-w-0">
             <h2 className="text-xl sm:text-2xl font-semibold text-foreground mb-2">
-              {isStressed ? "Let's take this step by step." : "I have your back."}
+              {isStressed ? "We've got this. Let's take it step by step." : "We have your back."}
             </h2>
             <p className="text-sm sm:text-base text-muted-foreground">
-              {isStressed ? reassurance : "You don't need to remember everything. I will."}
+              {isStressed ? reassurance : "You don't need to remember everything. We will."}
             </p>
           </div>
           <div className="flex-shrink-0">
@@ -185,7 +185,7 @@ const Index = () => {
               >
                 <EmptyState
                   title="Nothing to track yet"
-                  description="Upload a document above to extract obligations and deadlines. I'll help you keep on top of what matters."
+                  description="Upload a document above to extract obligations and deadlines. We'll help you keep on top of what matters."
                   variant="calm"
                 />
               </section>
