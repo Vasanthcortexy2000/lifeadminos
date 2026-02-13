@@ -46,12 +46,14 @@ export function OnboardingTour({
       const rect = el.getBoundingClientRect();
       const padding = 8;
       setTargetRect({
-        top: rect.top - padding + window.scrollY,
+        top: rect.top - padding,
         left: rect.left - padding,
         width: rect.width + padding * 2,
         height: rect.height + padding * 2,
       });
       el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+      setTargetRect(null);
     }
   }, [currentStep]);
 
@@ -118,44 +120,44 @@ export function OnboardingTour({
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === totalSteps - 1;
 
-  // Calculate tooltip position
+  // Calculate tooltip position (viewport-relative, since parent is fixed)
   const getTooltipStyle = (): React.CSSProperties => {
-    if (!targetRect) return { opacity: 0 };
+    if (!targetRect) return { opacity: 0, position: 'fixed' };
     const placement = isMobile ? 'bottom' : step.placement;
     const tooltipWidth = isMobile ? window.innerWidth - 32 : 320;
 
     switch (placement) {
       case 'bottom':
         return {
-          position: 'absolute',
+          position: 'fixed',
           top: targetRect.top + targetRect.height + 12,
           left: isMobile ? 16 : Math.max(16, Math.min(targetRect.left, window.innerWidth - tooltipWidth - 16)),
           width: tooltipWidth,
         };
       case 'top':
         return {
-          position: 'absolute',
-          bottom: window.innerHeight - targetRect.top + 12 + window.scrollY,
+          position: 'fixed',
+          bottom: window.innerHeight - targetRect.top + 12,
           left: isMobile ? 16 : Math.max(16, Math.min(targetRect.left, window.innerWidth - tooltipWidth - 16)),
           width: tooltipWidth,
         };
       case 'left':
         return {
-          position: 'absolute',
+          position: 'fixed',
           top: targetRect.top,
           right: window.innerWidth - targetRect.left + 12,
           width: tooltipWidth,
         };
       case 'right':
         return {
-          position: 'absolute',
+          position: 'fixed',
           top: targetRect.top,
           left: targetRect.left + targetRect.width + 12,
           width: tooltipWidth,
         };
       default:
         return {
-          position: 'absolute',
+          position: 'fixed',
           top: targetRect.top + targetRect.height + 12,
           left: 16,
           width: tooltipWidth,
@@ -167,19 +169,18 @@ export function OnboardingTour({
   const getClipPath = () => {
     if (!targetRect) return 'none';
     const { top, left, width, height } = targetRect;
-    const viewTop = top - window.scrollY;
     const r = 8;
     return `polygon(
       0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%,
-      ${left}px ${viewTop + r}px,
-      ${left + r}px ${viewTop}px,
-      ${left + width - r}px ${viewTop}px,
-      ${left + width}px ${viewTop + r}px,
-      ${left + width}px ${viewTop + height - r}px,
-      ${left + width - r}px ${viewTop + height}px,
-      ${left + r}px ${viewTop + height}px,
-      ${left}px ${viewTop + height - r}px,
-      ${left}px ${viewTop + r}px
+      ${left}px ${top + r}px,
+      ${left + r}px ${top}px,
+      ${left + width - r}px ${top}px,
+      ${left + width}px ${top + r}px,
+      ${left + width}px ${top + height - r}px,
+      ${left + width - r}px ${top + height}px,
+      ${left + r}px ${top + height}px,
+      ${left}px ${top + height - r}px,
+      ${left}px ${top + r}px
     )`;
   };
 
