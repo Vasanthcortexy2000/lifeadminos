@@ -23,6 +23,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FileText, List, Folder } from 'lucide-react';
+import { OnboardingTour } from '@/components/OnboardingTour';
+import { useOnboardingTour } from '@/hooks/useOnboardingTour';
 
 type ViewMode = 'timeline' | 'subject';
 
@@ -42,11 +44,21 @@ const Index = () => {
   } = useObligations();
   const { nudges, dismissNudge } = useNudges();
   const { isStressed, reassurance } = useStressAwareness(obligations);
- const { 
-   shouldShowPermissionDialog, 
-   requestPermission, 
-   declinePermission 
- } = usePushNotifications();
+  const { 
+    shouldShowPermissionDialog, 
+    requestPermission, 
+    declinePermission 
+  } = usePushNotifications();
+  const {
+    isActive: tourActive,
+    currentStep: tourStep,
+    startTour,
+    nextStep: tourNext,
+    prevStep: tourPrev,
+    skipTour,
+    restartTour,
+    totalSteps: tourTotal,
+  } = useOnboardingTour();
 
   // Filter obligations by domain
   const filteredObligations = selectedDomains.length > 0
@@ -115,7 +127,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Header onRestartTour={restartTour} />
  
        {/* Push Notification Permission Dialog */}
        <NotificationPermissionDialog
@@ -123,6 +135,16 @@ const Index = () => {
          onEnable={requestPermission}
          onDecline={declinePermission}
        />
+
+      <OnboardingTour
+        isActive={tourActive}
+        currentStep={tourStep}
+        onStart={startTour}
+        onNext={tourNext}
+        onPrev={tourPrev}
+        onSkip={skipTour}
+        totalSteps={tourTotal}
+      />
 
       <main id="main-content" className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Welcome Message */}
@@ -148,6 +170,7 @@ const Index = () => {
         {/* Document Upload - always at top */}
         <section
           id="add-documents"
+          data-tour="upload"
           className="mb-6 animate-slide-up scroll-mt-20"
           aria-labelledby="add-documents-heading"
         >
@@ -240,6 +263,7 @@ const Index = () => {
               className="animate-slide-up" 
               style={{ animationDelay: '150ms' }}
               data-section="timeline"
+              data-tour="timeline"
             >
               {obligationsLoading ? (
                 <div className="space-y-4">
@@ -270,6 +294,7 @@ const Index = () => {
             className="space-y-4 sm:space-y-6 animate-slide-up" 
             style={{ animationDelay: '200ms' }}
             aria-label="Updates and notifications"
+            data-tour="nudges"
           >
             {/* Urgent nudge banners - in-app, dismissible */}
             {!obligationsLoading && (

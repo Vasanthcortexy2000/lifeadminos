@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, LogOut, LayoutDashboard, Upload, Calendar, Menu, X, FolderOpen, FileBarChart } from 'lucide-react';
+import { Shield, LogOut, LayoutDashboard, Upload, Calendar, Menu, X, FolderOpen, FileBarChart, HelpCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/s
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-export function Header() {
+export function Header({ onRestartTour }: { onRestartTour?: () => void }) {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -20,25 +20,27 @@ export function Header() {
 
   const navLinks = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard, active: isDashboard && !location.hash },
-    { to: '/calendar', label: 'Calendar', icon: Calendar, active: isCalendar },
-    { to: '/vault', label: 'Vault', icon: FolderOpen, active: isVault },
+    { to: '/calendar', label: 'Calendar', icon: Calendar, active: isCalendar, tourId: 'calendar' },
+    { to: '/vault', label: 'Vault', icon: FolderOpen, active: isVault, tourId: 'vault' },
     { to: '/digest', label: 'Digest', icon: FileBarChart, active: isDigest },
   ];
 
-  const NavLinkItem = ({ to, label, icon: Icon, active, onClick }: {
+  const NavLinkItem = ({ to, label, icon: Icon, active, onClick, tourId }: {
     to: string;
     label: string;
     icon: React.ElementType;
     active: boolean;
     onClick?: () => void;
+    tourId?: string;
   }) => (
     <Link
       to={to}
       onClick={onClick}
+      data-tour={tourId}
       className={cn(
         'inline-flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-        'min-h-[44px]', // WCAG touch target
+        'min-h-[44px]',
         active
           ? 'bg-secondary text-foreground'
           : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
@@ -89,9 +91,20 @@ export function Header() {
             </nav>
           )}
 
-          {/* Desktop User Actions */}
           {user && !isMobile && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              {onRestartTour && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onRestartTour}
+                  className="text-muted-foreground hover:text-foreground min-h-[44px] px-3"
+                  aria-label="Take a tour of the app"
+                >
+                  <HelpCircle className="w-4 h-4 sm:mr-1.5" aria-hidden="true" />
+                  <span className="hidden sm:inline text-xs">Tour</span>
+                </Button>
+              )}
               <span className="text-sm text-muted-foreground hidden md:block truncate max-w-[180px]">
                 {user.email}
               </span>
